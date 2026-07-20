@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -maxdepth 3 -not -path '*/\\\\.*' -not -path '*venv*')",
+      "Read(//c/Users/Joeyy/dev/vaultor//**)",
+      "Read(//c/Users/Joeyy/dev/vaultor/**)",
+      "Bash(python manage.py makemigrations accounts core roadmap updates faq documents)",
+      "Bash(python manage.py migrate)",
+      "Bash(curl -s http://127.0.0.1:8123/api/config/)",
+      "Bash(curl -s http://127.0.0.1:8123/api/roadmap/)",
+      "Bash(powershell -Command 'Get-Process python -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowTitle -eq '\\\\'''\\\\''} | Stop-Process -Force')",
+      "Bash(netstat -ano)",
+      "Bash(DJANGO_SUPERUSER_PASSWORD='eddiejoe' python manage.py createsuperuser --noinput --username admin --email josephedward201@gmail.com)",
+      "Bash(npm --version)",
+      "PowerShell(npm *)",
+      "PowerShell(winget install *)",
+      "Bash(curl -s -o /tmp/vaultor_home.html -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
