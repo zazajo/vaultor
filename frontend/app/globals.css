@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+:root {
+  --bg-void: #050508;
+  --bg-marble: #0a0a10;
+  --surface: #0f0f16;
+  --vault-blue: #2563ff;
+  --vault-glow: rgba(59, 130, 246, 0.35);
+  --text-primary: #f5f5f7;
+  --text-secondary: #86868b;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+}
+
+@theme inline {
+  --color-bg-void: var(--bg-void);
+  --color-bg-marble: var(--bg-marble);
+  --color-surface: var(--surface);
+  --color-vault-blue: var(--vault-blue);
+  --color-vault-glow: var(--vault-glow);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-subtle: var(--border-subtle);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+}
+
+.hero-headline {
+  font-size: clamp(2.25rem, 5vw + 1.5rem, 4.5rem);
+  line-height: 1.08;
+}
+
+.text-gradient-silver {
+  background: linear-gradient(135deg, #f5f5f7 0%, #c9c9d1 50%, #9a9aa3 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-blue-chrome {
+  background: linear-gradient(135deg, #6ea8ff 0%, #2563ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.orb-gradient {
+  background: radial-gradient(circle, var(--vault-glow) 0%, rgba(37, 99, 255, 0.08) 45%, transparent 70%);
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.orb-breathe {
+  animation: orb-breathe 7s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes star-drift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(30px, -42px);
+  }
+}
+
+.star-drift {
+  animation-name: star-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+@keyframes node-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.node-pulse {
+  animation: node-pulse 2s ease-out infinite;
+}
+
+@keyframes orbital-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbital-spin {
+  animation: orbital-spin 140s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes phone-float {
+  0%,
+  100% {
+    transform: translateY(-6px);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.phone-float {
+  animation: phone-float 9s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-breathe,
+  .star-drift,
+  .node-pulse,
+  .orbital-spin,
+  .phone-float {
+    animation: none;
+  }
+}
