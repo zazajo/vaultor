@@ -57,14 +57,9 @@ export default async function RoadmapPage() {
               <FadeIn key={phase.id} delay={Math.min(i * 0.06, 0.3)}>
                 <div className="rounded-xl border border-border-subtle bg-surface p-6 sm:p-8">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm text-vault-blue">
-                        {phase.slug.toUpperCase()}
-                      </span>
-                      <h2 className="text-lg font-semibold uppercase tracking-wide text-text-primary sm:text-xl">
-                        {phase.title}
-                      </h2>
-                    </div>
+                    <h2 className="text-lg font-semibold uppercase tracking-wide text-text-primary sm:text-xl">
+                      {phase.title}
+                    </h2>
                     <span className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${meta.className}`}>
                       <StatusIcon size={14} />
                       {meta.label}
