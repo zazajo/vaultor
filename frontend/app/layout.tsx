@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Preloader from "@/components/Preloader";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-bg-void text-text-primary">
+        <Preloader />
         <SmoothScrollProvider>
           <Nav />
           <main className="flex-1">{children}</main>
