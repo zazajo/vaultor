@@ -98,3 +98,15 @@ export async function getDocuments(): Promise<Document[]> {
   const data = await apiFetch<Paginated<Document>>("/documents/");
   return data.results;
 }
+
+// Documents are matched by title from a handful of fixed spots (hero,
+// roadmap) rather than by id, so a renamed/missing document just hides the
+// button instead of breaking the build.
+export function findDocument(documents: Document[], title: string): Document | undefined {
+  const needle = title.trim().toLowerCase();
+  return documents.find((doc) => doc.title.trim().toLowerCase() === needle);
+}
+
+export function formatDocTitle(title: string): string {
+  return title.replace(/_/g, " ");
+}
