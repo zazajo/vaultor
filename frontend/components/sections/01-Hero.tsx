@@ -1,10 +1,9 @@
-import { Play, Download, Globe, Monitor, Smartphone, Activity, Bell, ShieldCheck } from "lucide-react";
+import { Play, Globe, Monitor, Smartphone, Activity, Bell, ShieldCheck } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 import CosmicBackground from "@/components/CosmicBackground";
 import Countdown from "@/components/Countdown";
 import ObserverArt from "@/components/ObserverArt";
 import HexBadge from "@/components/HexBadge";
-import { getDocuments, findDocument } from "@/lib/api";
 
 const MINI_FEATURES = [
   {
@@ -24,15 +23,7 @@ const MINI_FEATURES = [
   },
 ];
 
-export default async function Hero() {
-  let documents: Awaited<ReturnType<typeof getDocuments>> = [];
-  try {
-    documents = await getDocuments();
-  } catch {
-    documents = [];
-  }
-  const whitepaper = findDocument(documents, "Whitepaper");
-
+export default function Hero() {
   return (
     <section className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-28 lg:py-32">
       <CosmicBackground />
@@ -80,17 +71,6 @@ export default async function Hero() {
                 </span>
                 Watch Intro
               </button>
-              {whitepaper && (
-                <a
-                  href={whitepaper.file}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-border-subtle bg-transparent px-5 py-3 text-sm font-semibold uppercase tracking-wide text-text-primary transition-colors duration-300 hover:border-text-secondary sm:w-auto"
-                >
-                  <Download size={16} />
-                  Read Whitepaper
-                </a>
-              )}
             </div>
           </FadeIn>
 
