@@ -14,11 +14,14 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.core.models import SiteConfig
+from apps.documents.models import Document
 from apps.faq.models import FAQItem
 from apps.roadmap.models import Phase
 from apps.updates.models import Post
 
-SEED_MEDIA_DIR = Path(__file__).resolve().parents[3] / 'updates' / 'fixtures' / 'seed_media'
+APPS_DIR = Path(__file__).resolve().parents[3]
+UPDATES_SEED_MEDIA_DIR = APPS_DIR / 'updates' / 'fixtures' / 'seed_media'
+DOCUMENTS_SEED_MEDIA_DIR = APPS_DIR / 'documents' / 'fixtures' / 'seed_media'
 
 SITE_CONFIG = {
     'presale_start': datetime(2026, 7, 28, 16, 0, 0, tzinfo=dt_timezone.utc),
@@ -109,9 +112,24 @@ POSTS = [
     },
 ]
 
+DOCUMENTS = [
+    {
+        'title': 'Whitepaper',
+        'version': '0.1',
+        'description': '',
+        'file': 'Vaultor_Whitepaper.pdf',
+    },
+    {
+        'title': 'Roadmap_Genesis',
+        'version': '0.1',
+        'description': '',
+        'file': 'Vaultor_Roadmap_Genesis.pdf',
+    },
+]
+
 
 class Command(BaseCommand):
-    help = "Seed SiteConfig, Phases, FAQ items, and Posts with Vaultor's finalized content."
+    help = "Seed SiteConfig, Phases, FAQ items, Posts, and Documents with Vaultor's finalized content."
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -119,7 +137,22 @@ class Command(BaseCommand):
         self._seed_phases()
         self._seed_faq_items()
         self._seed_posts()
+        self._seed_documents()
         self.stdout.write(self.style.SUCCESS('seed_content complete.'))
+
+    @staticmethod
+    def _copy_seed_file(source_dir, filename, upload_to):
+        """Copy a bundled fixture file to a fixed MEDIA_ROOT path and return its relative path.
+
+        Bypasses FieldFile.save(), which appends a random suffix whenever a file
+        already exists at the target path - that would leave an orphaned copy
+        behind on every rerun instead of just overwriting it in place.
+        """
+        relative_path = f'{upload_to}{filename}'
+        dest = Path(settings.MEDIA_ROOT) / relative_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_dir / filename, dest)
+        return relative_path
 
     def _seed_site_config(self):
         config = SiteConfig.load()
@@ -149,15 +182,19 @@ class Command(BaseCommand):
             fields = {k: v for k, v in data.items() if k not in ('slug', 'cover_image')}
 
             if cover_image_filename:
-                # Copy straight to a fixed relative path rather than going through
-                # FieldFile.save(), which appends a random suffix whenever a file
-                # already exists there - that would leave an orphaned copy behind
-                # on every rerun instead of just overwriting it in place.
-                relative_path = f'updates/covers/{cover_image_filename}'
-                dest = Path(settings.MEDIA_ROOT) / relative_path
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(SEED_MEDIA_DIR / cover_image_filename, dest)
-                fields['cover_image'] = relative_path
+                fields['cover_image'] = self._copy_seed_file(
+                    UPDATES_SEED_MEDIA_DIR, cover_image_filename, 'updates/covers/'
+                )
 
             _, created = Post.objects.update_or_create(slug=slug, defaults=fields)
             self.stdout.write(f'Post "{slug}": {"created" if created else "updated"}')
+
+    def _seed_documents(self):
+        for data in DOCUMENTS:
+            title = data['title']
+            file_filename = data['file']
+            fields = {k: v for k, v in data.items() if k not in ('title', 'file')}
+            fields['file'] = self._copy_seed_file(DOCUMENTS_SEED_MEDIA_DIR, file_filename, 'documents/')
+
+            _, created = Document.objects.update_or_create(title=title, defaults=fields)
+            self.stdout.write(f'Document "{title}": {"created" if created else "updated"}')
