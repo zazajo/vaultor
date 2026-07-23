@@ -1,8 +1,8 @@
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Download } from "lucide-react";
 import type { Metadata } from "next";
 import FadeIn from "@/components/FadeIn";
 import PageHeader from "@/components/PageHeader";
-import { getRoadmap, getPhaseFeatures, type Phase } from "@/lib/api";
+import { getRoadmap, getPhaseFeatures, getDocuments, findDocument, type Phase } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Roadmap | Vaultor",
@@ -16,12 +16,10 @@ const STATUS_META: Record<Phase["status"], { label: string; icon: typeof CheckCi
 };
 
 export default async function RoadmapPage() {
-  let phases: Phase[] = [];
-  try {
-    phases = await getRoadmap();
-  } catch {
-    phases = [];
-  }
+  const [phasesResult, documentsResult] = await Promise.allSettled([getRoadmap(), getDocuments()]);
+  const phases = phasesResult.status === "fulfilled" ? phasesResult.value : [];
+  const documents = documentsResult.status === "fulfilled" ? documentsResult.value : [];
+  const roadmapDoc = findDocument(documents, "Roadmap_Genesis");
 
   return (
     <section className="relative mx-auto max-w-5xl px-4 py-20 sm:px-6 sm:py-24">
@@ -30,6 +28,20 @@ export default async function RoadmapPage() {
         title="The Vaultor Roadmap"
         description="From the first Observer to a fully integrated decentralized financial network — here's the path we're walking, phase by phase."
       />
+
+      {roadmapDoc && (
+        <FadeIn delay={0.2} className="mt-8 flex justify-center">
+          <a
+            href={roadmapDoc.file}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-vault-blue transition-colors hover:text-text-primary"
+          >
+            <Download size={16} />
+            View Full Roadmap (PDF)
+          </a>
+        </FadeIn>
+      )}
 
       {phases.length === 0 ? (
         <FadeIn delay={0.2} className="mt-16 text-center text-sm text-text-secondary">
