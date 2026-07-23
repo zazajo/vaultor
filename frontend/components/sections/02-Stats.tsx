@@ -31,7 +31,7 @@ export default function Stats() {
                 caption: "Live at launch",
               },
             },
-            { key: "version", props: { variant: "version", badgeText: "V0", versionLabel: "The Signal" } },
+            { key: "version", props: { variant: "version", badgeText: "V0", versionLabel: "Genesis" } },
             {
               key: "accuracy",
               props: {
