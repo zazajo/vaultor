@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Hero from "@/components/sections/01-Hero";
 import Stats from "@/components/sections/02-Stats";
 import Features from "@/components/sections/03-Features";
@@ -9,10 +10,30 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Stats />
-      <Features />
-      <Lore />
-      <TimelineSection />
+      <div className="relative">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            maskImage:
+              "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+          }}
+        >
+          <Image
+            src="/images/cosmic-backdrop.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover opacity-[0.15]"
+          />
+        </div>
+        <Stats />
+        <Features />
+        <Lore />
+        <TimelineSection />
+      </div>
       <App />
     </>
   );

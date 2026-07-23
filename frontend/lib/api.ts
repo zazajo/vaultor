@@ -14,7 +14,13 @@ export interface Phase {
   description: string;
   status: "current" | "coming_soon" | "complete";
   order: number;
-  features: string[];
+  features: string[] | Record<string, string>;
+}
+
+// The `features` field is a JSONField on the backend and has been seeded as
+// both an array and a plain object depending on the phase, so normalize it.
+export function getPhaseFeatures(phase: Phase): string[] {
+  return Array.isArray(phase.features) ? phase.features : Object.values(phase.features);
 }
 
 export interface Post {
@@ -77,6 +83,10 @@ export async function getRoadmap(): Promise<Phase[]> {
 export async function getUpdates(): Promise<Post[]> {
   const data = await apiFetch<Paginated<Post>>("/updates/");
   return data.results;
+}
+
+export function getUpdate(slug: string): Promise<Post> {
+  return apiFetch<Post>(`/updates/${slug}/`);
 }
 
 export async function getFaq(): Promise<FAQItem[]> {
