@@ -139,12 +139,28 @@ body {
   will-change: transform;
 }
 
+@keyframes preloader-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.preloader-bar {
+  transform: scaleX(1);
+  transform-origin: left;
+  animation: preloader-fill 1.1s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orb-breathe,
   .star-drift,
   .node-pulse,
   .orbital-spin,
-  .phone-float {
+  .phone-float,
+  .preloader-bar {
     animation: none;
   }
 }
