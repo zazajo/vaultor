@@ -1,5 +1,6 @@
 import { CheckCircle2, Zap, Target, ShieldCheck, Radar } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
+import OceanHorizon from "@/components/OceanHorizon";
 import PhoneMockup from "@/components/PhoneMockup";
 import HexBadge from "@/components/HexBadge";
 
@@ -35,7 +36,8 @@ const ADVANTAGES = [
 export default function App() {
   return (
     <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-24">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
+      <OceanHorizon intensity="medium" />
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
         <div className="flex flex-col items-start text-left">
           <FadeIn delay={0}>
             <div className="flex items-center gap-3">

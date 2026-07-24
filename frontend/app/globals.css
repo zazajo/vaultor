@@ -94,6 +94,54 @@ body {
   will-change: transform;
 }
 
+/* OceanHorizon atmosphere: slow mist drift and rising light motes. */
+@keyframes oh-drift {
+  from {
+    transform: translateX(-3.5%);
+  }
+  to {
+    transform: translateX(3.5%);
+  }
+}
+
+.oh-drift {
+  animation-name: oh-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+@keyframes oh-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  80% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-300px);
+    opacity: 0;
+  }
+}
+
+.oh-rise {
+  animation-name: oh-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oh-drift,
+  .oh-rise {
+    animation: none;
+  }
+}
+
 /* VaultorDiamond "constructing" variant: elements start hidden and draw in
    sequence (per-element delay via --vd-delay) once .vd-play lands. Reduced
    motion skips straight to the completed mark. */
