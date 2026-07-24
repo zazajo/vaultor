@@ -24,10 +24,13 @@ const MISTS = [
 
 export default function OceanHorizon({
   intensity = "faint",
+  axis = 50,
   className,
 }: {
   /** "faint" for behind dense text, "medium" for showcase sections */
   intensity?: "faint" | "medium";
+  /** Horizontal position (percent) of the moon and its light column */
+  axis?: number;
   className?: string;
 }) {
   const opacity = intensity === "medium" ? 0.8 : 0.45;
@@ -51,16 +54,41 @@ export default function OceanHorizon({
         }}
       />
 
-      {/* Moon glow, upper right, very soft */}
+      {/* Moon halo */}
       <div
-        className="absolute"
+        className="absolute -translate-x-1/2 -translate-y-1/2"
         style={{
-          left: "58%",
-          top: "-4%",
-          width: "34rem",
-          height: "34rem",
+          left: `${axis}%`,
+          top: "10%",
+          width: "22rem",
+          height: "22rem",
           background:
-            "radial-gradient(circle, rgba(190, 210, 255, 0.28) 0%, rgba(150, 180, 255, 0.10) 34%, transparent 68%)",
+            "radial-gradient(circle, rgba(210, 225, 255, 0.30) 0%, rgba(160, 190, 255, 0.10) 38%, transparent 68%)",
+        }}
+      />
+      {/* Moon disc */}
+      <div
+        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          left: `${axis}%`,
+          top: "10%",
+          width: 16,
+          height: 16,
+          background: "rgba(235, 242, 255, 0.9)",
+          boxShadow: "0 0 22px 6px rgba(210, 225, 255, 0.55)",
+        }}
+      />
+
+      {/* Light beam descending the axis from moon to horizon */}
+      <div
+        className="absolute -translate-x-1/2"
+        style={{
+          left: `${axis}%`,
+          top: "12%",
+          width: "6.5rem",
+          height: `${HORIZON - 12}%`,
+          background:
+            "radial-gradient(ellipse 42% 115% at 50% 0%, rgba(190, 212, 255, 0.13) 0%, rgba(170, 200, 255, 0.05) 60%, transparent 85%)",
         }}
       />
 
@@ -82,25 +110,28 @@ export default function OceanHorizon({
         />
       ))}
 
-      {/* Thin reflective horizon line */}
+      {/* Thin reflective horizon line, brightest beneath the moon */}
       <div
         className="absolute h-px w-full"
         style={{
           top: `${HORIZON}%`,
-          background:
-            "linear-gradient(to right, transparent 4%, rgba(165, 195, 255, 0.28) 35%, rgba(190, 212, 255, 0.42) 66%, rgba(165, 195, 255, 0.2) 88%, transparent 98%)",
+          background: `linear-gradient(to right,
+            transparent 2%,
+            rgba(165, 195, 255, 0.18) ${Math.max(axis - 30, 6)}%,
+            rgba(190, 212, 255, 0.45) ${axis}%,
+            rgba(165, 195, 255, 0.18) ${Math.min(axis + 30, 94)}%,
+            transparent 98%)`,
         }}
       />
 
-      {/* Soft light column reflecting beneath the moon */}
+      {/* Soft light column reflecting on the water beneath the moon */}
       <div
-        className="absolute"
+        className="absolute -translate-x-1/2"
         style={{
-          left: "68%",
+          left: `${axis}%`,
           top: `${HORIZON}%`,
-          width: "9rem",
+          width: "8rem",
           height: `${100 - HORIZON}%`,
-          transform: "translateX(-50%)",
           background:
             "radial-gradient(ellipse 50% 100% at 50% 0%, rgba(170, 200, 255, 0.16) 0%, rgba(150, 185, 255, 0.05) 55%, transparent 80%)",
         }}

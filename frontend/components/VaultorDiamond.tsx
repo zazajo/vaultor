@@ -2,16 +2,34 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-const SEED_R = 16;
+const SEED_R = 10;
 // 6 circle centers at 60-degree intervals around (50,50), radius SEED_R.
 const SEED_CENTERS = [
-  [66, 50],
-  [58, 63.86],
-  [42, 63.86],
-  [34, 50],
-  [42, 36.14],
-  [58, 36.14],
+  [60, 50],
+  [55, 58.66],
+  [45, 58.66],
+  [40, 50],
+  [45, 41.34],
+  [55, 41.34],
 ] as const;
+
+// Diamond frame vertices (outer / inner edge of the beveled band).
+const OUTER = "50,5 89,50 50,95 11,50";
+const INNER = "50,12.5 81.5,50 50,87.5 18.5,50";
+
+const VERTEX_FLARES: ReadonlyArray<readonly [number, number]> = [
+  [50, 5],
+  [89, 50],
+  [50, 95],
+  [11, 50],
+];
+
+// Three descending "think, decide, execute" pearls below the core.
+const AXIS_PEARLS = [
+  { cy: 70, r: 1.1 },
+  { cy: 74.5, r: 0.95 },
+  { cy: 79, r: 0.8 },
+];
 
 export default function VaultorDiamond({
   size = 48,
@@ -23,6 +41,7 @@ export default function VaultorDiamond({
   size?: number;
   /** 0 (no glow) to 1 (full glow) */
   glow?: number;
+  /** true: chevron V core (brand mark). false: inner-pyramid core (sigil form) */
   withV?: boolean;
   /** "constructing" draws the geometry in sequence once when scrolled into view */
   variant?: "static" | "constructing";
@@ -30,8 +49,8 @@ export default function VaultorDiamond({
 }) {
   const id = useId();
   const coreId = `${id}-core`;
-  const crownId = `${id}-crown`;
-  const pavId = `${id}-pav`;
+  const frameId = `${id}-frame`;
+  const chevronId = `${id}-chevron`;
   const goldId = `${id}-gold`;
 
   const svgRef = useRef<SVGSVGElement>(null);
@@ -66,18 +85,22 @@ export default function VaultorDiamond({
       aria-hidden
     >
       <defs>
-        <radialGradient id={coreId} cx="50%" cy="46%" r="50%">
-          <stop offset="0%" stopColor="var(--vault-blue)" stopOpacity={0.85 * glow} />
-          <stop offset="55%" stopColor="var(--vault-blue)" stopOpacity={0.25 * glow} />
+        <radialGradient id={coreId} cx="50%" cy="52%" r="50%">
+          <stop offset="0%" stopColor="var(--vault-blue)" stopOpacity={0.75 * glow} />
+          <stop offset="55%" stopColor="var(--vault-blue)" stopOpacity={0.22 * glow} />
           <stop offset="100%" stopColor="var(--vault-blue)" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id={crownId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6ea8ff" />
-          <stop offset="100%" stopColor="#2563ff" />
+        {/* Icy chrome band, lit from the top like the reference frame */}
+        <linearGradient id={frameId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#eef3fc" />
+          <stop offset="38%" stopColor="#aebfe3" />
+          <stop offset="72%" stopColor="#5c77b8" />
+          <stop offset="100%" stopColor="#2e4a8f" />
         </linearGradient>
-        <linearGradient id={pavId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2563ff" />
-          <stop offset="100%" stopColor="#0a1030" />
+        <linearGradient id={chevronId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#a9c6ff" />
+          <stop offset="55%" stopColor="#2563ff" />
+          <stop offset="100%" stopColor="#142e6b" />
         </linearGradient>
         <linearGradient id={goldId} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#e8d5a3" />
@@ -86,8 +109,8 @@ export default function VaultorDiamond({
         </linearGradient>
       </defs>
 
-      {/* Seed-of-Life construction geometry, faint, behind everything */}
-      <g stroke={`url(#${goldId})`} strokeWidth="0.5" fill="none" opacity="0.22">
+      {/* Seed-of-Life foundation + circles of intent, faint gold */}
+      <g stroke={`url(#${goldId})`} strokeWidth="0.45" fill="none" opacity="0.3">
         <circle cx="50" cy="50" r={SEED_R} pathLength={1} className="vd-draw" style={delay(0)} />
         {SEED_CENTERS.map(([cx, cy], i) => (
           <circle
@@ -97,54 +120,127 @@ export default function VaultorDiamond({
             r={SEED_R}
             pathLength={1}
             className="vd-draw"
-            style={delay(0.06 * (i + 1))}
+            style={delay(0.05 * (i + 1))}
           />
         ))}
-        <circle cx="50" cy="50" r="34" opacity="0.7" pathLength={1} className="vd-draw" style={delay(0.3)} />
-        <circle cx="50" cy="50" r="46" opacity="0.4" pathLength={1} className="vd-draw" style={delay(0.4)} />
+        <circle cx="50" cy="50" r="30" opacity="0.55" pathLength={1} className="vd-draw" style={delay(0.35)} />
+        <circle
+          cx="50"
+          cy="50"
+          r="20"
+          strokeDasharray="0.5 2"
+          opacity="0.8"
+          pathLength={1}
+          className="vd-draw"
+          style={delay(0.45)}
+        />
       </g>
 
       {/* Vesica Piscis emphasis pulse, only during the constructing sequence */}
       {constructing && (
-        <g stroke={`url(#${goldId})`} strokeWidth="0.8" fill="none" opacity="0" className="vd-vesica" style={delay(0.5)}>
-          <circle cx="42" cy="50" r={SEED_R} />
-          <circle cx="58" cy="50" r={SEED_R} />
+        <g stroke={`url(#${goldId})`} strokeWidth="0.7" fill="none" opacity="0" className="vd-vesica" style={delay(0.5)}>
+          <circle cx="43" cy="50" r={SEED_R} />
+          <circle cx="57" cy="50" r={SEED_R} />
         </g>
       )}
 
-      {/* Fills: core glow, facets, negative-space V */}
-      <g className="vd-fill" style={delay(1.55)}>
-        <circle cx="50" cy="46" r="30" fill={`url(#${coreId})`} />
+      {/* Diamond frame: edge strokes draw first, chrome band fills after */}
+      <polygon
+        points={OUTER}
+        fill="none"
+        stroke={`url(#${goldId})`}
+        strokeWidth="0.5"
+        strokeLinejoin="round"
+        pathLength={1}
+        className="vd-draw"
+        style={delay(0.85)}
+      />
+      <polygon
+        points={INNER}
+        fill="none"
+        stroke={`url(#${goldId})`}
+        strokeWidth="0.5"
+        strokeLinejoin="round"
+        pathLength={1}
+        className="vd-draw"
+        style={delay(0.95)}
+      />
+      <g className="vd-fill" style={delay(1.15)}>
+        <path
+          d={`M${OUTER.split(" ").join(" L")} Z M${INNER.split(" ").join(" L")} Z`}
+          fill={`url(#${frameId})`}
+          fillRule="evenodd"
+          opacity="0.92"
+        />
+      </g>
 
-        <polygon points="50,12 22,44 38,44" fill={`url(#${crownId})`} opacity="0.55" />
-        <polygon points="50,12 38,44 62,44" fill={`url(#${crownId})`} opacity="0.9" />
-        <polygon points="50,12 62,44 78,44" fill={`url(#${crownId})`} opacity="0.55" />
+      {/* Axis mundi and its points */}
+      <line
+        x1="50"
+        y1="1"
+        x2="50"
+        y2="99"
+        stroke="#c9c9d1"
+        strokeWidth="0.35"
+        opacity="0.3"
+        pathLength={1}
+        className="vd-draw"
+        style={delay(1.25)}
+      />
+      <g className="vd-fill" fill="#cdd8f0" style={delay(1.35)}>
+        <circle cx="50" cy="2.5" r="0.9" opacity="0.7" />
+        <circle cx="50" cy="97.5" r="0.9" opacity="0.7" />
+        {AXIS_PEARLS.map((pearl) => (
+          <circle key={pearl.cy} cx="50" cy={pearl.cy} r={pearl.r} opacity="0.85" />
+        ))}
+      </g>
 
-        <polygon points="22,44 38,44 50,88" fill={`url(#${pavId})`} opacity="0.6" />
-        <polygon points="38,44 62,44 50,88" fill={`url(#${pavId})`} opacity="0.95" />
-        <polygon points="62,44 78,44 50,88" fill={`url(#${pavId})`} opacity="0.6" />
+      {/* Core: glow, crescent + dot near the top, chevron V or inner pyramid */}
+      <g className="vd-fill" style={delay(1.6)}>
+        <circle cx="50" cy="52" r="24" fill={`url(#${coreId})`} />
 
-        {withV && (
+        <circle cx="50" cy="19.5" r="1.2" fill="#c9c9d1" opacity="0.85" />
+        <path
+          d="M44.6 20 A5.5 5.5 0 0 0 55.4 20 A7 7 0 0 1 44.6 20 Z"
+          fill="#c9c9d1"
+          opacity="0.7"
+        />
+
+        {withV ? (
           <path
-            d="M43 47 L50 73 L57 47 L52.8 47 L50 60.5 L47.2 47 Z"
-            fill="var(--bg-void)"
-            opacity="0.82"
+            d="M38 42 L50 66 L62 42 L57 42 L50 55.5 L43 42 Z"
+            fill={`url(#${chevronId})`}
+            stroke="#c9c9d1"
+            strokeWidth="0.5"
+            strokeLinejoin="round"
+            opacity="0.95"
           />
+        ) : (
+          <g>
+            <polygon
+              points="50,40 58,51 50,64 42,51"
+              fill={`url(#${chevronId})`}
+              stroke="#c9c9d1"
+              strokeWidth="0.5"
+              strokeLinejoin="round"
+              opacity="0.95"
+            />
+            <g stroke="#c9c9d1" strokeWidth="0.35" opacity="0.6">
+              <line x1="42" y1="51" x2="58" y2="51" />
+              <line x1="50" y1="40" x2="50" y2="64" />
+            </g>
+          </g>
         )}
-      </g>
 
-      {/* Silver inner facet edges ("inner pyramid") */}
-      <g stroke="#c9c9d1" strokeWidth="0.6" fill="none" opacity="0.5">
-        <line x1="38" y1="44" x2="50" y2="12" pathLength={1} className="vd-draw" style={delay(1.25)} />
-        <line x1="62" y1="44" x2="50" y2="12" pathLength={1} className="vd-draw" style={delay(1.3)} />
-        <line x1="38" y1="44" x2="50" y2="88" pathLength={1} className="vd-draw" style={delay(1.35)} />
-        <line x1="62" y1="44" x2="50" y2="88" pathLength={1} className="vd-draw" style={delay(1.4)} />
-      </g>
-
-      {/* Gold outline and girdle along key construction points */}
-      <g stroke={`url(#${goldId})`} strokeWidth="0.9" fill="none" strokeLinejoin="round">
-        <polygon points="50,12 78,44 50,88 22,44" pathLength={1} className="vd-draw" style={delay(0.9)} />
-        <line x1="22" y1="44" x2="78" y2="44" pathLength={1} className="vd-draw" style={delay(1.1)} />
+        {/* Star flares at the frame vertices */}
+        <g fill="#cfe0ff" opacity="0.9">
+          {VERTEX_FLARES.map(([x, y]) => (
+            <path
+              key={`${x}-${y}`}
+              d={`M${x} ${y - 3.2} L${x + 0.9} ${y - 0.9} L${x + 3.2} ${y} L${x + 0.9} ${y + 0.9} L${x} ${y + 3.2} L${x - 0.9} ${y + 0.9} L${x - 3.2} ${y} L${x - 0.9} ${y - 0.9} Z`}
+            />
+          ))}
+        </g>
       </g>
     </svg>
   );

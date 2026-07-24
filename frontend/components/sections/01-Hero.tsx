@@ -7,10 +7,10 @@ import {
   Activity,
   Bell,
   ShieldCheck,
-  Target,
-  BadgeCheck,
-  Gift,
-  Network,
+  Eye,
+  BrainCircuit,
+  Scale,
+  Zap,
 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 import Countdown from "@/components/Countdown";
@@ -18,28 +18,32 @@ import HexBadge from "@/components/HexBadge";
 import OceanHorizon from "@/components/OceanHorizon";
 import VaultorDiamond from "@/components/VaultorDiamond";
 
-/* Distant hooded figure at the horizon: a suggestion, not a subject.
-   Hidden on small screens where the stacked layout would put it over text. */
+/* Hooded figure on the horizon axis, back to the viewer, watching the signal.
+   Silhouetted with a faint moonlit rim, per the client key art. Hidden on
+   small screens where the stacked layout would put it over text. */
 function DistantObserver() {
   return (
     <svg
       viewBox="0 0 40 60"
-      width={34}
-      height={51}
+      width={42}
+      height={63}
       aria-hidden
-      className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 lg:block"
-      style={{ top: "62%", transform: "translate(-50%, -96%)", opacity: 0.45 }}
+      className="pointer-events-none absolute left-1/2 hidden lg:block"
+      style={{ top: "62%", transform: "translate(-50%, -96%)", opacity: 0.6 }}
     >
       <defs>
         <linearGradient id="distant-observer" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#141b2e" />
-          <stop offset="70%" stopColor="#0a0e1a" />
+          <stop offset="0%" stopColor="#161e33" />
+          <stop offset="70%" stopColor="#0b101e" />
           <stop offset="100%" stopColor="#05070d" stopOpacity="0.6" />
         </linearGradient>
       </defs>
       <path
         d="M20 5 C14.5 5 11 9.5 11 15 C11 17.8 11.9 19.9 13 21.5 C9.5 29 7 41 6 57 L34 57 C33 41 30.5 29 27 21.5 C28.1 19.9 29 17.8 29 15 C29 9.5 25.5 5 20 5 Z"
         fill="url(#distant-observer)"
+        stroke="#5b83d6"
+        strokeOpacity="0.28"
+        strokeWidth="0.8"
       />
     </svg>
   );
@@ -63,11 +67,12 @@ const MINI_FEATURES = [
   },
 ];
 
+// The Vaultor Method, from the client's core-signal materials.
 const FEATURE_ROW = [
-  { icon: Target, label: "Prediction" },
-  { icon: BadgeCheck, label: "Reputation" },
-  { icon: Gift, label: "Rewards" },
-  { icon: Network, label: "Collective Intelligence" },
+  { icon: Eye, label: "Observe" },
+  { icon: BrainCircuit, label: "Analyze" },
+  { icon: Scale, label: "Decide" },
+  { icon: Zap, label: "Execute" },
 ];
 
 export default function Hero() {
@@ -158,7 +163,7 @@ export default function Hero() {
         </div>
 
         <FadeIn delay={0.2} className="flex justify-center">
-          <div className="relative flex aspect-square w-full max-w-[420px] items-center justify-center lg:-translate-y-10">
+          <div className="relative flex aspect-square w-full max-w-[420px] items-center justify-center lg:-translate-y-10 xl:-translate-x-16">
             <div className="orb-gradient orb-breathe absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
             <VaultorDiamond size={210} glow={0.75} variant="constructing" className="relative" />
           </div>
