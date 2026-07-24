@@ -5,8 +5,8 @@ import CosmicBackground from "@/components/CosmicBackground";
 import OrbitalRing from "@/components/OrbitalRing";
 import VaultorDiamond from "@/components/VaultorDiamond";
 
-const MIN_DISPLAY_MS = 1100;
-const FADE_MS = 500;
+const MIN_DISPLAY_MS = 450;
+const FADE_MS = 350;
 
 type Phase = "visible" | "exiting" | "hidden";
 
