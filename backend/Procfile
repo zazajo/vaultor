@@ -1,2 +1,2 @@
 release: python manage.py migrate --noinput && python manage.py collectstatic --noinput
-web: gunicorn vaultor_v0.wsgi --log-file -
+web: gunicorn vaultor_v0.wsgi --workers 3 --log-file -
