@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import MobileMenu from "@/components/MobileMenu";
+import VaultorDiamond from "@/components/VaultorDiamond";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -16,14 +16,7 @@ export default function Nav() {
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-bg-void/80 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-text-primary">
-          <Image
-            src="/images/shield.jpg"
-            alt=""
-            width={36}
-            height={36}
-            className="rounded-md"
-            priority
-          />
+          <VaultorDiamond size={36} glow={0.35} />
           Vaultor
         </Link>
         <ul className="hidden items-center gap-8 md:flex">

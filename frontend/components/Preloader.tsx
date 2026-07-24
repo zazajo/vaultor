@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import CosmicBackground from "@/components/CosmicBackground";
 import OrbitalRing from "@/components/OrbitalRing";
+import VaultorDiamond from "@/components/VaultorDiamond";
 
 const MIN_DISPLAY_MS = 1100;
 const FADE_MS = 500;
@@ -54,9 +54,7 @@ export default function Preloader() {
         <div className="relative flex h-24 w-24 items-center justify-center">
           <div className="orb-gradient orb-breathe absolute inset-[-40%] rounded-full blur-2xl" />
           <OrbitalRing className="absolute inset-[-45%] opacity-40" />
-          <div className="relative h-14 w-14 overflow-hidden rounded-xl shadow-[0_0_30px_var(--vault-glow)]">
-            <Image src="/images/shield.jpg" alt="" fill sizes="56px" priority className="object-cover" />
-          </div>
+          <VaultorDiamond size={64} glow={1} className="relative" />
         </div>
 
         <div className="flex flex-col items-center gap-3">
