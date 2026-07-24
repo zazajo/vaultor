@@ -55,7 +55,7 @@ export default async function RoadmapPage() {
             const features = getPhaseFeatures(phase);
             return (
               <FadeIn key={phase.id} delay={Math.min(i * 0.06, 0.3)}>
-                <div className="rounded-xl border border-border-subtle bg-surface p-6 sm:p-8">
+                <div className="metal-ring rounded-xl border border-transparent bg-surface p-6 sm:p-8">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 className="text-lg font-semibold uppercase tracking-wide text-text-primary sm:text-xl">
                       {phase.title}

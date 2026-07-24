@@ -1,5 +1,6 @@
 import { TrendingUp, Eye, Umbrella, BrainCircuit, PieChart } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
+import OceanHorizon from "@/components/OceanHorizon";
 import SectionEyebrow from "@/components/SectionEyebrow";
 import FeatureCard from "@/components/FeatureCard";
 
@@ -33,22 +34,25 @@ const FEATURES = [
 
 export default function Features() {
   return (
-    <section className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-      <FadeIn>
-        <SectionEyebrow number="02" title="What the Observer Sees" />
-      </FadeIn>
-      <FadeIn delay={0.1} className="mt-8 sm:mt-10">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
-          {FEATURES.map((feature) => (
-            <FeatureCard
-              key={feature.title}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
-            />
-          ))}
-        </div>
-      </FadeIn>
+    <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-24">
+      <OceanHorizon intensity="faint" />
+      <div className="relative mx-auto max-w-6xl">
+        <FadeIn>
+          <SectionEyebrow number="02" title="What the Observer Sees" />
+        </FadeIn>
+        <FadeIn delay={0.1} className="mt-8 sm:mt-10">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            {FEATURES.map((feature) => (
+              <FeatureCard
+                key={feature.title}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+              />
+            ))}
+          </div>
+        </FadeIn>
+      </div>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import FadeIn from "@/components/FadeIn";
+import VaultorDiamond from "@/components/VaultorDiamond";
 
 export default function PageHeader({
   eyebrow,
@@ -12,6 +13,9 @@ export default function PageHeader({
   return (
     <div className="mx-auto max-w-3xl text-center">
       <FadeIn>
+        <div className="mb-4 flex justify-center">
+          <VaultorDiamond size={26} glow={0.25} withV={false} />
+        </div>
         <div className="flex items-center justify-center gap-3">
           <span className="h-px w-8 bg-vault-blue" />
           <span className="text-xs font-semibold uppercase tracking-[0.25em] text-vault-blue sm:text-sm">

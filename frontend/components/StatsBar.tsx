@@ -17,7 +17,7 @@ function getTrailingSpanClass(index: number, total: number): string {
 
 export default function StatsBar({ cells }: { cells: StatsBarCell[] }): ReactNode {
   return (
-    <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border-subtle bg-border-subtle sm:grid-cols-2 md:grid-cols-3">
+    <div className="metal-ring grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-transparent bg-border-subtle sm:grid-cols-2 md:grid-cols-3">
       {cells.map((cell, i) => (
         <div key={cell.key} className={getTrailingSpanClass(i, cells.length)}>
           <StatCell {...cell.props} />

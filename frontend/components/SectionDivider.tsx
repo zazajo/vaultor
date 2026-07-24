@@ -22,11 +22,11 @@ function CircuitNode() {
 export default function SectionDivider() {
   return (
     <div className="mx-auto flex max-w-md items-center" aria-hidden>
-      <span className="h-px flex-1 bg-border-subtle" />
+      <span className="metal-line-fade-l h-px flex-1" />
       <CircuitNode />
       <VaultorDiamond size={32} glow={0.3} variant="constructing" className="shrink-0" />
       <CircuitNode />
-      <span className="h-px flex-1 bg-border-subtle" />
+      <span className="metal-line-fade-r h-px flex-1" />
     </div>
   );
 }
