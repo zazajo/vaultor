@@ -13,10 +13,37 @@ import {
   Network,
 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
-import CosmicBackground from "@/components/CosmicBackground";
 import Countdown from "@/components/Countdown";
-import ObserverArt from "@/components/ObserverArt";
 import HexBadge from "@/components/HexBadge";
+import OceanHorizon from "@/components/OceanHorizon";
+import VaultorDiamond from "@/components/VaultorDiamond";
+
+/* Distant hooded figure at the horizon: a suggestion, not a subject.
+   Hidden on small screens where the stacked layout would put it over text. */
+function DistantObserver() {
+  return (
+    <svg
+      viewBox="0 0 40 60"
+      width={34}
+      height={51}
+      aria-hidden
+      className="pointer-events-none absolute left-1/2 hidden -translate-x-1/2 lg:block"
+      style={{ top: "62%", transform: "translate(-50%, -96%)", opacity: 0.45 }}
+    >
+      <defs>
+        <linearGradient id="distant-observer" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#141b2e" />
+          <stop offset="70%" stopColor="#0a0e1a" />
+          <stop offset="100%" stopColor="#05070d" stopOpacity="0.6" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M20 5 C14.5 5 11 9.5 11 15 C11 17.8 11.9 19.9 13 21.5 C9.5 29 7 41 6 57 L34 57 C33 41 30.5 29 27 21.5 C28.1 19.9 29 17.8 29 15 C29 9.5 25.5 5 20 5 Z"
+        fill="url(#distant-observer)"
+      />
+    </svg>
+  );
+}
 
 const MINI_FEATURES = [
   {
@@ -46,7 +73,8 @@ const FEATURE_ROW = [
 export default function Hero() {
   return (
     <section className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-28 lg:py-32">
-      <CosmicBackground />
+      <OceanHorizon intensity="medium" />
+      <DistantObserver />
 
       <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:gap-12">
         <div className="flex flex-col items-start text-left">
@@ -130,7 +158,10 @@ export default function Hero() {
         </div>
 
         <FadeIn delay={0.2} className="flex justify-center">
-          <ObserverArt />
+          <div className="relative flex aspect-square w-full max-w-[420px] items-center justify-center lg:-translate-y-10">
+            <div className="orb-gradient orb-breathe absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
+            <VaultorDiamond size={210} glow={0.75} variant="constructing" className="relative" />
+          </div>
         </FadeIn>
 
         <div className="hidden items-stretch xl:flex">
