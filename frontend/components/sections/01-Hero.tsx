@@ -1,4 +1,17 @@
-import { Play, Globe, Monitor, Smartphone, Activity, Bell, ShieldCheck } from "lucide-react";
+import {
+  Play,
+  ArrowRight,
+  Globe,
+  Monitor,
+  Smartphone,
+  Activity,
+  Bell,
+  ShieldCheck,
+  Target,
+  BadgeCheck,
+  Gift,
+  Network,
+} from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 import CosmicBackground from "@/components/CosmicBackground";
 import Countdown from "@/components/Countdown";
@@ -23,6 +36,13 @@ const MINI_FEATURES = [
   },
 ];
 
+const FEATURE_ROW = [
+  { icon: Target, label: "Prediction" },
+  { icon: BadgeCheck, label: "Reputation" },
+  { icon: Gift, label: "Rewards" },
+  { icon: Network, label: "Collective Intelligence" },
+];
+
 export default function Hero() {
   return (
     <section className="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-28 lg:py-32">
@@ -34,23 +54,24 @@ export default function Hero() {
             <div className="flex items-center gap-3">
               <span className="h-px w-8 bg-vault-blue" />
               <span className="text-xs font-semibold uppercase tracking-[0.25em] text-vault-blue sm:text-sm">
-                The Observer Protocol
+                Vaultor Genesis // V0
               </span>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.1}>
             <h1 className="hero-headline mt-5 font-extrabold uppercase tracking-tighter sm:mt-6">
-              <span className="block text-gradient-silver">Observe.</span>
-              <span className="block text-gradient-silver">Understand.</span>
-              <span className="block text-gradient-blue-chrome">Predict.</span>
+              <span className="block text-gradient-silver">Perception</span>
+              <span className="block text-gradient-silver">Precedes</span>
+              <span className="block text-gradient-blue-chrome">Prediction.</span>
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.2}>
-            <p className="mt-5 max-w-[48ch] text-base text-text-secondary sm:mt-6 sm:text-lg">
-              Real-time market intelligence and predictive signals, watching the
-              chain so you don&apos;t have to.
+            <p className="mt-5 max-w-[52ch] text-base text-text-secondary sm:mt-6 sm:text-lg">
+              A perception-first prediction ecosystem where intelligence
+              compounds, reputation matters, and every insight strengthens the
+              network.
             </p>
           </FadeIn>
 
@@ -58,9 +79,10 @@ export default function Hero() {
             <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:mt-10 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <a
                 href="#enter"
-                className="w-full rounded-full bg-vault-blue px-6 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_40px_var(--vault-glow)] transition-shadow duration-300 hover:shadow-[0_0_60px_var(--vault-glow)] sm:w-auto"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-vault-blue px-6 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_40px_var(--vault-glow)] transition-shadow duration-300 hover:shadow-[0_0_60px_var(--vault-glow)] sm:w-auto"
               >
-                Enter the Vault »
+                Enter Genesis
+                <ArrowRight size={16} />
               </a>
               <button
                 type="button"
@@ -75,12 +97,25 @@ export default function Hero() {
           </FadeIn>
 
           <FadeIn delay={0.4}>
+            <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-3 sm:mt-10 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-3">
+              {FEATURE_ROW.map((feature) => (
+                <div key={feature.label} className="flex items-center gap-2">
+                  <feature.icon size={16} className="shrink-0 text-vault-blue" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary sm:text-xs">
+                    {feature.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.5}>
             <div className="mt-8 sm:mt-10">
               <Countdown />
             </div>
           </FadeIn>
 
-          <FadeIn delay={0.5}>
+          <FadeIn delay={0.6}>
             <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4">
               <span className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
                 Available On
