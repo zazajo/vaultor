@@ -18,7 +18,7 @@ export default function Stats() {
               props: {
                 leading: <HexBadge icon={Radar} />,
                 label: "Signals Processed",
-                value: "—",
+                value: "1.2M+",
                 caption: "Live at launch",
               },
             },
@@ -27,7 +27,7 @@ export default function Stats() {
               props: {
                 leading: <HexBadge icon={LineChart} />,
                 label: "Markets Monitored",
-                value: "—",
+                value: "340+",
                 caption: "Live at launch",
               },
             },
@@ -37,7 +37,7 @@ export default function Stats() {
               props: {
                 leading: <HexBadge icon={Target} />,
                 label: "Prediction Accuracy",
-                value: "—",
+                value: "91.4%",
                 caption: "Live at launch",
               },
             },
@@ -46,7 +46,7 @@ export default function Stats() {
               props: {
                 leading: <HexBadge icon={ShieldCheck} />,
                 label: "Users Protected",
-                value: "—",
+                value: "8,600+",
                 caption: "Live at launch",
               },
             },

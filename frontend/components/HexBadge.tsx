@@ -12,11 +12,14 @@ export default function HexBadge({
   className?: string;
 }) {
   return (
-    <div className={`relative shrink-0 ${className ?? ""}`} style={{ width: size, height: size }}>
+    <div
+      className={`relative shrink-0 ${className ?? ""}`}
+      style={{ width: size, height: size, filter: "drop-shadow(0 0 10px var(--vault-glow))" }}
+    >
       <svg viewBox="0 0 100 100" width={size} height={size} className="absolute inset-0">
         <defs>
           <radialGradient id="hexbadge-glow" cx="50%" cy="50%" r="65%">
-            <stop offset="0%" stopColor="var(--vault-blue)" stopOpacity="0.14" />
+            <stop offset="0%" stopColor="var(--vault-blue)" stopOpacity="0.32" />
             <stop offset="100%" stopColor="var(--vault-blue)" stopOpacity="0" />
           </radialGradient>
         </defs>

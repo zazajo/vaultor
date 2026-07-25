@@ -119,7 +119,7 @@ export default function Hero() {
               </a>
               <button
                 type="button"
-                className="metal-ring flex w-full items-center justify-center gap-3 rounded-full border border-transparent bg-transparent px-5 py-3 text-sm font-semibold uppercase tracking-wide text-text-primary transition-colors duration-300 hover:text-vault-blue sm:w-auto"
+                className="metal-ring flex w-full items-center justify-center gap-3 rounded-full border border-transparent bg-transparent px-5 py-3 text-sm font-semibold uppercase tracking-wide text-text-primary shadow-[0_0_24px_-8px_var(--vault-glow)] transition-shadow duration-300 hover:text-vault-blue hover:shadow-[0_0_36px_-6px_var(--vault-glow)] sm:w-auto"
               >
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-vault-blue text-vault-blue">
                   <Play size={11} fill="currentColor" />

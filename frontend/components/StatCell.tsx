@@ -36,7 +36,10 @@ export default function StatCell(props: StatCellProps) {
         <span className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
           {label}
         </span>
-        <span className="font-mono text-2xl font-semibold tabular-nums lining-nums text-text-primary sm:text-3xl">
+        <span
+          className="font-mono text-2xl font-semibold tabular-nums lining-nums text-text-primary sm:text-3xl"
+          style={{ textShadow: "0 0 18px var(--vault-glow)" }}
+        >
           {value}
         </span>
         <span className="text-xs text-text-secondary">{caption}</span>
