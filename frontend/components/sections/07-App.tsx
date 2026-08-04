@@ -66,15 +66,6 @@ export default function App() {
               ))}
             </ul>
           </FadeIn>
-
-          <FadeIn delay={0.3}>
-            <a
-              href="#app"
-              className="metal-ring mt-8 inline-flex items-center justify-center rounded-full border border-transparent bg-transparent px-6 py-3 text-sm font-semibold uppercase tracking-wide text-text-primary transition-colors duration-300 hover:text-vault-blue"
-            >
-              Explore the App
-            </a>
-          </FadeIn>
         </div>
 
         <FadeIn delay={0.2}>

@@ -1,5 +1,4 @@
 import {
-  Play,
   ArrowRight,
   Globe,
   Monitor,
@@ -12,9 +11,11 @@ import {
   Scale,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import FadeIn from "@/components/FadeIn";
 import Countdown from "@/components/Countdown";
 import HexBadge from "@/components/HexBadge";
+import IntroVideo from "@/components/IntroVideo";
 import OceanHorizon from "@/components/OceanHorizon";
 import VaultorDiamond from "@/components/VaultorDiamond";
 
@@ -110,22 +111,14 @@ export default function Hero() {
 
           <FadeIn delay={0.3}>
             <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:mt-10 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-              <a
-                href="#enter"
+              <Link
+                href="/community"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-vault-blue px-6 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white shadow-[0_0_40px_var(--vault-glow)] transition-shadow duration-300 hover:shadow-[0_0_60px_var(--vault-glow)] sm:w-auto"
               >
                 Enter Genesis
                 <ArrowRight size={16} />
-              </a>
-              <button
-                type="button"
-                className="metal-ring flex w-full items-center justify-center gap-3 rounded-full border border-transparent bg-transparent px-5 py-3 text-sm font-semibold uppercase tracking-wide text-text-primary shadow-[0_0_24px_-8px_var(--vault-glow)] transition-shadow duration-300 hover:text-vault-blue hover:shadow-[0_0_36px_-6px_var(--vault-glow)] sm:w-auto"
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-vault-blue text-vault-blue">
-                  <Play size={11} fill="currentColor" />
-                </span>
-                Watch Intro
-              </button>
+              </Link>
+              <IntroVideo />
             </div>
           </FadeIn>
 
