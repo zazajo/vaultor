@@ -5,6 +5,7 @@ import VaultorDiamond from "@/components/VaultorDiamond";
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
+  { label: "Incubator", href: "/incubator" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "Referral", href: "/referral" },
   { label: "Community", href: "/community" },

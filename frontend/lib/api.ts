@@ -58,6 +58,44 @@ interface Paginated<T> {
   results: T[];
 }
 
+export interface Tier {
+  id: number;
+  name: string;
+  min_lamports: string;
+  bonus_bps: number;
+  description: string;
+  order: number;
+}
+
+// Every lamport amount is a decimal string, not a number: the values can exceed
+// Number.MAX_SAFE_INTEGER, so they are parsed with BigInt (see lib/lamports.ts)
+// rather than being allowed to land as floats.
+export interface PresaleStatus {
+  treasury_address: string;
+  cluster: string;
+  is_paused: boolean;
+  soft_cap_lamports: string;
+  hard_cap_lamports: string;
+  min_contribution_lamports: string;
+  max_contribution_lamports: string;
+  token_price_lamports: string;
+  raised_lamports: string;
+  contributor_count: number;
+  tiers: Tier[];
+  last_indexed_at: string | null;
+}
+
+export interface Allocation {
+  address: string;
+  contributed_lamports: string;
+  tier: Tier | null;
+  bonus_bps: number;
+  base_tokens: string | null;
+  bonus_tokens: string | null;
+  total_tokens: string | null;
+  contribution_count: number;
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -109,4 +147,16 @@ export function findDocument(documents: Document[], title: string): Document | u
 
 export function formatDocTitle(title: string): string {
   return title.replace(/_/g, " ");
+}
+
+// Presale figures move during a live raise, so these two never read from cache —
+// a stale raised total on the incubator page would misreport how much has come in.
+export function getPresaleStatus(): Promise<PresaleStatus> {
+  return apiFetch<PresaleStatus>("/presale/", { cache: "no-store" });
+}
+
+export function getAllocation(address: string): Promise<Allocation> {
+  return apiFetch<Allocation>(`/presale/allocation/?address=${encodeURIComponent(address)}`, {
+    cache: "no-store",
+  });
 }
