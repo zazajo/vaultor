@@ -50,6 +50,31 @@ export function formatTokens(value: string | null | undefined, maxDecimals = 2):
   return trimmed ? `${wholeFormatted}.${trimmed}` : wholeFormatted;
 }
 
+/**
+ * Approximate USD value of a lamport amount, for display beside the SOL figure.
+ * Returns null when no price is cached, so the caller can omit the line rather
+ * than render a misleading "$0".
+ */
+export function formatUsdValue(
+  lamports: string | bigint,
+  solUsdPrice: string | null,
+): string | null {
+  if (!solUsdPrice) return null;
+  const rate = Number(solUsdPrice);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
+
+  const value = typeof lamports === "bigint" ? lamports : toLamports(lamports);
+  // Safe as a Number here: this is a rounded display figure, not an amount
+  // anyone is credited, and SOL totals are far below the precision limit.
+  const usd = (Number(value) / Number(LAMPORTS_PER_SOL)) * rate;
+
+  return usd.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: usd >= 100 ? 0 : 2,
+  });
+}
+
 /** Middle-truncate a base58 address for display. */
 export function shortenAddress(address: string, lead = 4, tail = 4): string {
   if (address.length <= lead + tail + 1) return address;

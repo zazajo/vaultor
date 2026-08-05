@@ -5,7 +5,8 @@ from .models import LAMPORTS_PER_SOL, Contribution, PresaleConfig, Tier
 
 @admin.register(PresaleConfig)
 class PresaleConfigAdmin(admin.ModelAdmin):
-    readonly_fields = ('last_indexed_signature', 'last_indexed_at')
+    readonly_fields = ('last_indexed_signature', 'last_indexed_at',
+                       'sol_usd_price', 'sol_usd_updated_at')
 
     fieldsets = (
         ('Chain', {
@@ -30,7 +31,8 @@ class PresaleConfigAdmin(admin.ModelAdmin):
             'fields': ('is_paused',),
         }),
         ('Indexer state', {
-            'fields': ('last_indexed_signature', 'last_indexed_at'),
+            'fields': ('last_indexed_signature', 'last_indexed_at',
+                       'sol_usd_price', 'sol_usd_updated_at'),
         }),
     )
 
@@ -55,14 +57,17 @@ class TierAdmin(admin.ModelAdmin):
 
 @admin.register(Contribution)
 class ContributionAdmin(admin.ModelAdmin):
-    list_display = ('signature_short', 'sender_address', 'sol_amount', 'status', 'block_time')
+    list_display = ('signature_short', 'sender_address', 'sol_amount', 'tokens', 'status', 'block_time')
     list_filter = ('status',)
     search_fields = ('signature', 'sender_address', 'referral_code')
     ordering = ('-slot',)
 
     # Contributions mirror on-chain history, so they are not hand-editable —
     # the only intended change is flipping status to exclude or mark refunded.
-    readonly_fields = ('signature', 'sender_address', 'lamports', 'slot', 'block_time', 'created_at')
+    # base_tokens is frozen at credit time and editing it would silently rewrite
+    # what someone earned.
+    readonly_fields = ('signature', 'sender_address', 'lamports', 'slot', 'block_time',
+                       'created_at', 'base_tokens', 'token_price_lamports_at_credit')
 
     def has_add_permission(self, request):
         return False
@@ -74,3 +79,7 @@ class ContributionAdmin(admin.ModelAdmin):
     @admin.display(description='Amount (SOL)', ordering='lamports')
     def sol_amount(self, obj):
         return f'{obj.sol:g}'
+
+    @admin.display(description='Tokens (frozen)', ordering='base_tokens')
+    def tokens(self, obj):
+        return f'{obj.base_tokens:,.2f}' if obj.base_tokens is not None else '—'

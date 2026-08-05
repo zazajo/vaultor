@@ -86,6 +86,9 @@ export interface PresaleStatus {
   contributor_count: number;
   tiers: Tier[];
   last_indexed_at: string | null;
+  // Display only. Refreshed by the indexer, never used to compute allocations.
+  sol_usd_price: string | null;
+  sol_usd_updated_at: string | null;
 }
 
 export interface Allocation {

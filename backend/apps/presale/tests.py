@@ -74,7 +74,7 @@ class AllocationTests(TestCase):
         self.assertEqual(services.tier_for_lamports(1 * LAMPORTS_PER_SOL).name, 'Base')
 
     def test_bonus_applied_on_top_of_base(self):
-        result = services.allocation_for_lamports(50 * LAMPORTS_PER_SOL)
+        result = services.quote_allocation(50 * LAMPORTS_PER_SOL)
         # 50 SOL / 0.001 = 50,000 tokens, +15% = 57,500
         self.assertEqual(result['base_tokens'], Decimal(50_000))
         self.assertEqual(result['total_tokens'], Decimal(57_500))
@@ -83,7 +83,7 @@ class AllocationTests(TestCase):
         config = PresaleConfig.load()
         config.token_price_lamports = 0
         config.save()
-        result = services.allocation_for_lamports(10 * LAMPORTS_PER_SOL)
+        result = services.quote_allocation(10 * LAMPORTS_PER_SOL)
         self.assertIsNone(result['total_tokens'])
 
     def test_totals_only_count_confirmed_contributions(self):
@@ -98,6 +98,64 @@ class AllocationTests(TestCase):
         )
         self.assertEqual(services.total_raised_lamports(), 5 * LAMPORTS_PER_SOL)
         self.assertEqual(services.contributed_lamports_for(CONTRIBUTOR), 5 * LAMPORTS_PER_SOL)
+
+    def test_price_change_does_not_restate_existing_allocation(self):
+        """The whole point of freezing base_tokens at credit time."""
+        Contribution.objects.create(
+            signature='sig-frozen', sender_address=CONTRIBUTOR,
+            lamports=1 * LAMPORTS_PER_SOL, slot=1,
+            base_tokens=Decimal(1000), token_price_lamports_at_credit=1_000_000,
+        )
+        before = services.allocation_for_address(CONTRIBUTOR)['total_tokens']
+
+        # SOL moves, team re-prices for future contributors.
+        config = PresaleConfig.load()
+        config.token_price_lamports = 4_000_000
+        config.save()
+
+        after = services.allocation_for_address(CONTRIBUTOR)['total_tokens']
+        self.assertEqual(before, after)
+        self.assertEqual(after, Decimal(1000))
+
+    def test_new_contribution_uses_new_price_alongside_old(self):
+        Contribution.objects.create(
+            signature='sig-old', sender_address=CONTRIBUTOR,
+            lamports=1 * LAMPORTS_PER_SOL, slot=1,
+            base_tokens=Decimal(1000), token_price_lamports_at_credit=1_000_000,
+        )
+        Contribution.objects.create(
+            signature='sig-new', sender_address=CONTRIBUTOR,
+            lamports=1 * LAMPORTS_PER_SOL, slot=2,
+            base_tokens=Decimal(250), token_price_lamports_at_credit=4_000_000,
+        )
+        # Each contribution keeps the rate it was credited at.
+        self.assertEqual(services.base_tokens_for(CONTRIBUTOR), Decimal(1250))
+
+    def test_tier_still_improves_with_running_total(self):
+        """Price is frozen; tier is not — topping up can still promote you."""
+        Contribution.objects.create(
+            signature='sig-t1', sender_address=CONTRIBUTOR,
+            lamports=8 * LAMPORTS_PER_SOL, slot=1,
+            base_tokens=Decimal(8000), token_price_lamports_at_credit=1_000_000,
+        )
+        self.assertEqual(services.allocation_for_address(CONTRIBUTOR)['tier'].name, 'Base')
+
+        Contribution.objects.create(
+            signature='sig-t2', sender_address=CONTRIBUTOR,
+            lamports=4 * LAMPORTS_PER_SOL, slot=2,
+            base_tokens=Decimal(4000), token_price_lamports_at_credit=1_000_000,
+        )
+        result = services.allocation_for_address(CONTRIBUTOR)
+        self.assertEqual(result['tier'].name, 'Silver')
+        # 12,000 base tokens, +5% = 12,600
+        self.assertEqual(result['total_tokens'], Decimal(12_600))
+
+    def test_allocation_none_when_nothing_was_priced(self):
+        Contribution.objects.create(
+            signature='sig-unpriced', sender_address=CONTRIBUTOR,
+            lamports=1 * LAMPORTS_PER_SOL, slot=1,
+        )
+        self.assertIsNone(services.allocation_for_address(CONTRIBUTOR)['total_tokens'])
 
     def test_contributor_count_deduplicates_addresses(self):
         for i in range(3):

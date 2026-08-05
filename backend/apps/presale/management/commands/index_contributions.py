@@ -14,6 +14,7 @@ Design notes, since this is the code that decides who gets credited:
   re-run (or two overlapping runs) can never double-credit an address.
 """
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import requests
 from django.core.management.base import BaseCommand, CommandError
@@ -21,10 +22,16 @@ from django.db import IntegrityError, transaction as db_transaction
 from django.utils import timezone as dj_timezone
 
 from apps.presale.models import Contribution, PresaleConfig
+from apps.presale.services import quote_base_tokens
 
 # Solana's getSignaturesForAddress caps out at 1000 per call.
 SIGNATURE_PAGE_SIZE = 1000
 REQUEST_TIMEOUT = 30
+
+# Display-only SOL price. Refreshed here rather than during a web request so a
+# slow or rate-limited price API can never hang the incubator page.
+PRICE_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'
+PRICE_TIMEOUT = 10
 
 
 class RpcError(Exception):
@@ -168,6 +175,8 @@ class Command(BaseCommand):
         except (requests.RequestException, RpcError) as exc:
             raise CommandError(f'Could not fetch signatures: {exc}') from exc
 
+        self._refresh_sol_price(dry_run)
+
         if not signatures:
             self.stdout.write(self.style.SUCCESS('No new transactions.'))
             self._touch_indexed_at(config, dry_run)
@@ -222,8 +231,14 @@ class Command(BaseCommand):
             if tx.get('blockTime'):
                 block_time = datetime.fromtimestamp(tx['blockTime'], tz=timezone.utc)
 
+            # Freeze the price now. Re-reading it later would let a price change
+            # silently restate what this contributor already earned.
+            price = config.token_price_lamports
+            base_tokens = quote_base_tokens(lamports, price)
+
             if dry_run:
-                self.stdout.write(f'  would credit {sender[:8]}… {lamports / 1e9:g} SOL')
+                earned = f'{base_tokens:,.2f} tokens' if base_tokens is not None else 'no price set'
+                self.stdout.write(f'  would credit {sender[:8]}… {lamports / 1e9:g} SOL → {earned}')
             else:
                 try:
                     Contribution.objects.create(
@@ -232,6 +247,8 @@ class Command(BaseCommand):
                         lamports=lamports,
                         slot=tx.get('slot') or entry.get('slot') or 0,
                         block_time=block_time,
+                        base_tokens=base_tokens,
+                        token_price_lamports_at_credit=price,
                     )
                 except IntegrityError:
                     # Another indexer run inserted it between the check and here.
@@ -254,6 +271,30 @@ class Command(BaseCommand):
             f'{skipped} non-deposit transaction(s) skipped.'
         )
         self.stdout.write(self.style.SUCCESS(f'[dry run] {summary}' if dry_run else summary))
+
+    def _refresh_sol_price(self, dry_run):
+        """Update the cached SOL/USD figure shown on the page.
+
+        Best-effort by design: a failure here must never abort an indexing run,
+        because crediting contributions matters and a display price does not.
+        The last known value simply stays in place.
+        """
+        if dry_run:
+            return
+        try:
+            response = requests.get(PRICE_URL, timeout=PRICE_TIMEOUT)
+            response.raise_for_status()
+            price = Decimal(str(response.json()['solana']['usd']))
+        except (requests.RequestException, KeyError, ValueError, ArithmeticError) as exc:
+            self.stderr.write(self.style.WARNING(f'SOL price refresh skipped: {exc}'))
+            return
+
+        with db_transaction.atomic():
+            fresh = PresaleConfig.load()
+            fresh.sol_usd_price = price
+            fresh.sol_usd_updated_at = dj_timezone.now()
+            fresh.save()
+        self.stdout.write(f'SOL price updated: ${price}')
 
     def _bootstrap(self, config, url, dry_run):
         """Skip everything that already happened and start counting from now.

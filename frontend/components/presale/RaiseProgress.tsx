@@ -1,4 +1,4 @@
-import { formatSol, percentOf, toLamports } from "@/lib/lamports";
+import { formatSol, formatUsdValue, percentOf, toLamports } from "@/lib/lamports";
 import type { PresaleStatus } from "@/lib/api";
 
 // Local to this panel rather than the shared StatCell, which carries its own
@@ -22,6 +22,7 @@ export default function RaiseProgress({ status }: { status: PresaleStatus }) {
   const progress = percentOf(raised, hardCap);
   const softCapMark = percentOf(softCap, hardCap);
   const softCapMet = softCap > 0n && raised >= softCap;
+  const raisedUsd = formatUsdValue(raised, status.sol_usd_price);
 
   return (
     <div className="metal-ring rounded-xl border border-transparent bg-surface p-6 sm:p-8">
@@ -31,6 +32,9 @@ export default function RaiseProgress({ status }: { status: PresaleStatus }) {
           <p className="mt-1 font-mono text-3xl tabular-nums text-text-primary sm:text-4xl">
             {formatSol(raised)} <span className="text-lg text-text-secondary">SOL</span>
           </p>
+          {raisedUsd && (
+            <p className="mt-1 font-mono text-xs text-text-secondary">≈ {raisedUsd}</p>
+          )}
         </div>
         {hardCap > 0n && (
           <p className="font-mono text-sm text-text-secondary">

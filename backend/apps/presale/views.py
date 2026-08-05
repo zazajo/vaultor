@@ -41,6 +41,8 @@ class PresaleStatusView(GenericAPIView):
             'contributor_count': services.contributor_count(),
             'tiers': tiers,
             'last_indexed_at': config.last_indexed_at,
+            'sol_usd_price': config.sol_usd_price,
+            'sol_usd_updated_at': config.sol_usd_updated_at,
         }
         return Response(self.get_serializer(payload).data)
 
@@ -61,11 +63,8 @@ class AllocationView(GenericAPIView):
         if not (MIN_ADDRESS_LENGTH <= len(address) <= MAX_ADDRESS_LENGTH):
             raise ValidationError({'address': 'Not a valid Solana address.'})
 
-        config = PresaleConfig.load()
         tiers = list(Tier.objects.all())
-
-        contributed = services.contributed_lamports_for(address)
-        allocation = services.allocation_for_lamports(contributed, config=config, tiers=tiers)
+        allocation = services.allocation_for_address(address, tiers=tiers)
 
         count = Contribution.objects.filter(
             sender_address=address,
@@ -74,7 +73,7 @@ class AllocationView(GenericAPIView):
 
         payload = {
             'address': address,
-            'contributed_lamports': str(contributed),
+            'contributed_lamports': str(allocation['contributed_lamports']),
             'tier': allocation['tier'],
             'bonus_bps': allocation['bonus_bps'],
             'base_tokens': allocation['base_tokens'],

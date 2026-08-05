@@ -79,6 +79,12 @@ class PresaleConfig(models.Model):
     last_indexed_signature = models.CharField(max_length=88, blank=True)
     last_indexed_at = models.DateTimeField(null=True, blank=True)
 
+    # Cached SOL price, refreshed by the indexer rather than fetched during a
+    # web request — a slow or rate-limited price API must never be able to hang
+    # the incubator page. Display only; it never feeds allocation math.
+    sol_usd_price = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    sol_usd_updated_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         verbose_name = 'Presale configuration'
         verbose_name_plural = 'Presale configuration'
@@ -147,6 +153,22 @@ class Contribution(models.Model):
 
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.CONFIRMED)
     referral_code = models.CharField(max_length=64, blank=True, db_index=True)
+
+    # Token price is locked in at the moment the contribution is credited, so a
+    # later price change (or a SOL move) cannot retroactively repay anyone at a
+    # different rate. Tier bonuses are deliberately NOT frozen here — those are
+    # applied against the contributor's running total, so topping up can still
+    # promote you a tier.
+    base_tokens = models.DecimalField(
+        max_digits=40, decimal_places=9, null=True, blank=True,
+        help_text='Tokens earned by this contribution alone, before any tier bonus. '
+                  'Null when the presale had no token price configured at credit time.',
+    )
+    token_price_lamports_at_credit = models.BigIntegerField(
+        default=0,
+        help_text='The lamports-per-token price used for this contribution. Kept so '
+                  'the allocation can be re-derived and audited after a re-price.',
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 

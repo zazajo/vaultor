@@ -1,8 +1,14 @@
 """Allocation math for the presale.
 
-Allocations are always derived from confirmed Contribution rows rather than
-stored, so there is no second copy of the numbers that can drift out of sync
-with what actually landed on chain.
+Contribution *totals* are always derived from Contribution rows rather than
+stored, so the raised figure can never drift from what actually landed on chain.
+
+Token counts work the other way round: each contribution's base token amount is
+frozen at credit time. Deriving them from the current price would mean every
+existing contributor's allocation silently re-priced whenever the token price
+changed, which would be indistinguishable from the site misreporting what people
+already own. Tier bonuses are still applied live against the running total, so a
+top-up can still promote someone a tier.
 """
 from decimal import Decimal
 
@@ -35,6 +41,19 @@ def contributed_lamports_for(address):
     return agg['total'] or 0
 
 
+def base_tokens_for(address):
+    """Sum of the token amounts frozen on each of this address's contributions.
+
+    Returns None when no contribution has a price recorded, which is how an
+    unconfigured presale is distinguished from a genuine zero.
+    """
+    rows = Contribution.objects.filter(
+        sender_address=address,
+        status=Contribution.Status.CONFIRMED,
+    ).exclude(base_tokens=None).aggregate(total=Sum('base_tokens'))
+    return rows['total']
+
+
 def tier_for_lamports(lamports, tiers=None):
     """Highest tier whose threshold the contribution meets, or None."""
     if tiers is None:
@@ -45,21 +64,32 @@ def tier_for_lamports(lamports, tiers=None):
     return max(qualifying, key=lambda t: t.min_lamports)
 
 
-def allocation_for_lamports(lamports, config=None, tiers=None):
-    """Token allocation for a given contribution size.
+def quote_base_tokens(lamports, token_price_lamports):
+    """Tokens a contribution of this size earns at this price, before bonus.
 
-    Returns a dict of Decimals. A token price of 0 means allocation math is not
-    configured yet, in which case the token amounts come back as None rather
-    than a misleading zero.
+    Used by the indexer to freeze an amount at credit time, and by the page to
+    quote a prospective contribution. A price of 0 means pricing is not
+    configured, which is reported as None rather than a misleading zero.
     """
-    if config is None:
-        config = PresaleConfig.load()
+    if not token_price_lamports:
+        return None
+    return Decimal(lamports) / Decimal(token_price_lamports)
 
-    tier = tier_for_lamports(lamports, tiers=tiers)
+
+def allocation_for_address(address, tiers=None):
+    """Current allocation for an address, from frozen token amounts.
+
+    The tier is resolved against the running total, so contributing more can
+    still move someone up a band; only the price is frozen.
+    """
+    contributed = contributed_lamports_for(address)
+    tier = tier_for_lamports(contributed, tiers=tiers)
     bonus_bps = tier.bonus_bps if tier else 0
 
-    if not config.token_price_lamports:
+    base_tokens = base_tokens_for(address)
+    if base_tokens is None:
         return {
+            'contributed_lamports': contributed,
             'tier': tier,
             'bonus_bps': bonus_bps,
             'base_tokens': None,
@@ -67,9 +97,35 @@ def allocation_for_lamports(lamports, config=None, tiers=None):
             'total_tokens': None,
         }
 
-    base_tokens = Decimal(lamports) / Decimal(config.token_price_lamports)
     bonus_tokens = base_tokens * Decimal(bonus_bps) / BPS_DENOMINATOR
+    return {
+        'contributed_lamports': contributed,
+        'tier': tier,
+        'bonus_bps': bonus_bps,
+        'base_tokens': base_tokens,
+        'bonus_tokens': bonus_tokens,
+        'total_tokens': base_tokens + bonus_tokens,
+    }
 
+
+def quote_allocation(lamports, config=None, tiers=None):
+    """What a prospective contribution of this size would earn right now.
+
+    Unlike allocation_for_address this uses the *current* price, because it is
+    a forward-looking quote rather than a record of something already credited.
+    """
+    if config is None:
+        config = PresaleConfig.load()
+
+    tier = tier_for_lamports(lamports, tiers=tiers)
+    bonus_bps = tier.bonus_bps if tier else 0
+    base_tokens = quote_base_tokens(lamports, config.token_price_lamports)
+
+    if base_tokens is None:
+        return {'tier': tier, 'bonus_bps': bonus_bps, 'base_tokens': None,
+                'bonus_tokens': None, 'total_tokens': None}
+
+    bonus_tokens = base_tokens * Decimal(bonus_bps) / BPS_DENOMINATOR
     return {
         'tier': tier,
         'bonus_bps': bonus_bps,

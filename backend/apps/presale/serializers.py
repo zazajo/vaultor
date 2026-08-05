@@ -34,6 +34,10 @@ class PresaleStatusSerializer(serializers.Serializer):
     tiers = TierSerializer(many=True)
     last_indexed_at = serializers.DateTimeField(allow_null=True)
 
+    # Display only — never used to compute an allocation.
+    sol_usd_price = serializers.DecimalField(max_digits=12, decimal_places=4, allow_null=True)
+    sol_usd_updated_at = serializers.DateTimeField(allow_null=True)
+
 
 class AllocationSerializer(serializers.Serializer):
     address = serializers.CharField()
