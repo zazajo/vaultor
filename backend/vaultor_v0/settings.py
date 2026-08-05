@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'apps.updates',
     'apps.faq',
     'apps.documents',
+    'apps.presale',
 ]
 
 MIDDLEWARE = [
