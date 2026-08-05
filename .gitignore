@@ -27,6 +27,3 @@ frontend/dev.err.log
 # Editor / OS
 .DS_Store
 *.pem
-
-# Claude Code local settings
-.claude/settings.local.json
