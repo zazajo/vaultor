@@ -133,6 +133,14 @@ class Command(BaseCommand):
             action='store_true',
             help='Report what would be credited without writing any rows.',
         )
+        parser.add_argument(
+            '--bootstrap',
+            action='store_true',
+            help='Move the cursor to the newest current transaction WITHOUT crediting '
+                 'anything, so indexing starts from now. Run this once immediately '
+                 'before the presale opens on a treasury that has prior history, '
+                 'otherwise old incoming transfers are credited as contributions.',
+        )
 
     def handle(self, *args, **options):
         config = PresaleConfig.load()
@@ -146,6 +154,10 @@ class Command(BaseCommand):
         url = config.effective_rpc_url
         until = '' if options['full'] else config.last_indexed_signature
         dry_run = options['dry_run']
+
+        if options['bootstrap']:
+            self._bootstrap(config, url, dry_run)
+            return
 
         self.stdout.write(f'Indexing {config.treasury_address} on {config.cluster}')
         if until:
@@ -242,6 +254,45 @@ class Command(BaseCommand):
             f'{skipped} non-deposit transaction(s) skipped.'
         )
         self.stdout.write(self.style.SUCCESS(f'[dry run] {summary}' if dry_run else summary))
+
+    def _bootstrap(self, config, url, dry_run):
+        """Skip everything that already happened and start counting from now.
+
+        A treasury reused from another purpose carries history, and every past
+        incoming transfer would otherwise be credited to a sender who never
+        took part in the presale.
+        """
+        try:
+            page = rpc_call(url, 'getSignaturesForAddress', [
+                config.treasury_address,
+                {'limit': 1, 'commitment': 'finalized'},
+            ])
+        except (requests.RequestException, RpcError) as exc:
+            raise CommandError(f'Could not fetch signatures: {exc}') from exc
+
+        if not page:
+            self.stdout.write('No transaction history — nothing to skip.')
+            return
+
+        newest = page[0]['signature']
+        existing = Contribution.objects.count()
+
+        if dry_run:
+            self.stdout.write(f'[dry run] would set cursor to {newest[:16]}…')
+            return
+
+        with db_transaction.atomic():
+            fresh = PresaleConfig.load()
+            fresh.last_indexed_signature = newest
+            fresh.last_indexed_at = dj_timezone.now()
+            fresh.save()
+
+        self.stdout.write(self.style.SUCCESS(f'Cursor set to {newest[:16]}…'))
+        self.stdout.write('Only transactions after this point will be credited.')
+        if existing:
+            self.stdout.write(self.style.WARNING(
+                f'Note: {existing} contribution row(s) already exist and were not removed.'
+            ))
 
     def _touch_indexed_at(self, config, dry_run):
         if dry_run:
