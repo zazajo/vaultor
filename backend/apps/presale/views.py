@@ -35,6 +35,8 @@ class PresaleStatusView(GenericAPIView):
             'min_contribution_lamports': str(config.min_contribution_lamports),
             'max_contribution_lamports': str(config.max_contribution_lamports),
             'token_price_lamports': str(config.token_price_lamports),
+            'presale_price_usd': config.presale_price_usd,
+            'launch_price_usd': config.launch_price_usd,
             'raised_lamports': str(services.total_raised_lamports()),
             'contributor_count': services.contributor_count(),
             'tiers': tiers,

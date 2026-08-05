@@ -20,6 +20,12 @@ class PresaleConfigAdmin(admin.ModelAdmin):
                 'token_price_lamports',
             ),
         }),
+        ('Advertised pricing (display only — does not affect allocations)', {
+            'fields': ('presale_price_usd', 'launch_price_usd', 'sol_usd_rate_at_pricing'),
+            'description': 'These drive the copy on the incubator page. Allocations are '
+                           'computed from token_price_lamports above, so changing a USD '
+                           'price here does not retroactively change anyone\'s tokens.',
+        }),
         ('Controls', {
             'fields': ('is_paused',),
         }),

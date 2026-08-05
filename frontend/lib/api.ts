@@ -79,6 +79,9 @@ export interface PresaleStatus {
   min_contribution_lamports: string;
   max_contribution_lamports: string;
   token_price_lamports: string;
+  // Advertised prices, independent of the lamport price that drives allocations.
+  presale_price_usd: string | null;
+  launch_price_usd: string | null;
   raised_lamports: string;
   contributor_count: number;
   tiers: Tier[];

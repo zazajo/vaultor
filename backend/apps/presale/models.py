@@ -46,7 +46,27 @@ class PresaleConfig(models.Model):
     token_price_lamports = models.BigIntegerField(
         default=0,
         validators=[MinValueValidator(0)],
-        help_text='Price of one token, in lamports. 0 disables allocation math.',
+        help_text='Price of one token, in lamports. This is the number that decides '
+                  'allocations. 0 disables allocation math.',
+    )
+
+    # Display-only. Deliberately separate from token_price_lamports: allocations
+    # must be reproducible from on-chain SOL amounts alone, so the figure that
+    # decides who gets what cannot depend on a USD rate that moves after the
+    # fact. These two are what the page advertises; the lamport price is what
+    # the ledger honours.
+    presale_price_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, null=True, blank=True,
+        help_text='Advertised presale price per token in USD, e.g. 0.008.',
+    )
+    launch_price_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, null=True, blank=True,
+        help_text='Advertised launch price per token in USD, e.g. 0.010.',
+    )
+    sol_usd_rate_at_pricing = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True,
+        help_text='The SOL/USD rate token_price_lamports was derived from. Recorded '
+                  'so the advertised USD price can be audited against the rate used.',
     )
 
     is_paused = models.BooleanField(

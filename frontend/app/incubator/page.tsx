@@ -4,6 +4,7 @@ import Countdown from "@/components/Countdown";
 import FadeIn from "@/components/FadeIn";
 import PageHeader from "@/components/PageHeader";
 import AllocationChecker from "@/components/presale/AllocationChecker";
+import PriceBanner from "@/components/presale/PriceBanner";
 import RaiseProgress from "@/components/presale/RaiseProgress";
 import TierTable from "@/components/presale/TierTable";
 import TreasuryAddress from "@/components/presale/TreasuryAddress";
@@ -52,6 +53,13 @@ export default async function IncubatorPage() {
           )}
 
           <FadeIn delay={0.06}>
+            <PriceBanner
+              presalePrice={status.presale_price_usd}
+              launchPrice={status.launch_price_usd}
+            />
+          </FadeIn>
+
+          <FadeIn delay={0.12}>
             <RaiseProgress status={status} />
           </FadeIn>
 

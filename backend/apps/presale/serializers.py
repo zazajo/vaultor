@@ -25,6 +25,8 @@ class PresaleStatusSerializer(serializers.Serializer):
     min_contribution_lamports = serializers.CharField()
     max_contribution_lamports = serializers.CharField()
     token_price_lamports = serializers.CharField()
+    presale_price_usd = serializers.DecimalField(max_digits=12, decimal_places=6, allow_null=True)
+    launch_price_usd = serializers.DecimalField(max_digits=12, decimal_places=6, allow_null=True)
 
     raised_lamports = serializers.CharField()
     contributor_count = serializers.IntegerField()
