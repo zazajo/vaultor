@@ -8,6 +8,7 @@ import PriceBanner from "@/components/presale/PriceBanner";
 import RaiseProgress from "@/components/presale/RaiseProgress";
 import TierTable from "@/components/presale/TierTable";
 import TreasuryAddress from "@/components/presale/TreasuryAddress";
+import WalletContext from "@/components/presale/WalletContext";
 import { getConfig, getPresaleStatus } from "@/lib/api";
 
 export const metadata: Metadata = {
@@ -91,8 +92,12 @@ export default async function IncubatorPage() {
             <TierTable tiers={status.tiers} />
           </FadeIn>
 
+          {/* Wallet context is scoped to this section rather than the root
+              layout, so the adapter never loads on pages that don't use it. */}
           <FadeIn delay={0.24}>
-            <AllocationChecker />
+            <WalletContext>
+              <AllocationChecker />
+            </WalletContext>
           </FadeIn>
         </div>
       )}

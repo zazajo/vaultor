@@ -1,57 +1,100 @@
 "use client";
 
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import ConnectWallet from "@/components/presale/ConnectWallet";
 import { getAllocation, type Allocation } from "@/lib/api";
 import { formatSol, formatTokens } from "@/lib/lamports";
 
 // Base58 excludes 0, O, I and l to avoid visually ambiguous characters.
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
+const LOOKUP_FAILED = "Couldn't reach the allocation service. Try again in a moment.";
+
 export default function AllocationChecker() {
-  const [address, setAddress] = useState("");
+  const { publicKey } = useWallet();
+  const [typed, setTyped] = useState<string | null>(null);
   const [result, setResult] = useState<Allocation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent) {
+  const connectedAddress = publicKey?.toBase58() ?? null;
+
+  // The field is derived rather than synced: whatever the user typed wins, and
+  // otherwise it falls back to the connected wallet. Mirroring the wallet into
+  // state with an effect would set state during render and cascade.
+  const address = typed ?? connectedAddress ?? "";
+
+  const lookup = useCallback(async (value: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      setResult(await getAllocation(value));
+    } catch {
+      setError(LOOKUP_FAILED);
+      setResult(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Connecting looks the address up straight away — skipping the copy-paste is
+  // the whole point. Every state update happens in an async callback, never
+  // synchronously in the effect body.
+  useEffect(() => {
+    if (!connectedAddress) return;
+    let cancelled = false;
+
+    getAllocation(connectedAddress)
+      .then((allocation) => {
+        if (cancelled) return;
+        setResult(allocation);
+        setError(null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError(LOOKUP_FAILED);
+        setResult(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [connectedAddress]);
+
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = address.trim();
 
     // Validated client-side first so an obvious typo doesn't read as "you have
-    // contributed nothing", which would be alarming to someone who just sent funds.
+    // contributed nothing", which would alarm someone who just sent funds.
     if (!BASE58.test(trimmed)) {
       setError("That doesn't look like a Solana address. Check it and try again.");
       setResult(null);
       return;
     }
-
-    setLoading(true);
-    setError(null);
-    try {
-      setResult(await getAllocation(trimmed));
-    } catch {
-      setError("Couldn't reach the allocation service. Try again in a moment.");
-      setResult(null);
-    } finally {
-      setLoading(false);
-    }
+    void lookup(trimmed);
   }
 
   return (
     <div className="metal-ring rounded-xl border border-transparent bg-surface p-6 sm:p-8">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-text-primary">
-        Check Your Allocation
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-text-primary">
+          Check Your Allocation
+        </h2>
+        <ConnectWallet />
+      </div>
+
       <p className="mt-2 text-xs text-text-secondary">
-        Enter the wallet you contributed from. Read-only — this never asks you to connect a wallet
-        or sign anything.
+        Connect to fill this in automatically, or paste any address. Read-only either way — you are
+        never asked to sign a transaction or approve a spend.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3 sm:flex-row">
         <input
           value={address}
-          onChange={(event) => setAddress(event.target.value)}
+          onChange={(event) => setTyped(event.target.value)}
           placeholder="Your Solana wallet address"
           spellCheck={false}
           autoComplete="off"
