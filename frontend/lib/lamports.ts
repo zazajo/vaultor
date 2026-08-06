@@ -75,6 +75,22 @@ export function formatUsdValue(
   });
 }
 
+/**
+ * Parse a user-typed SOL amount into lamports without ever passing through a
+ * float — `Number("0.1") * 1e9` is not exactly 100_000_000 in JS, and this
+ * number becomes a transaction amount.
+ *
+ * Returns null for anything that isn't a plain non-negative decimal with at
+ * most 9 fractional digits (lamports has no finer resolution than that).
+ */
+export function parseSolInput(value: string): bigint | null {
+  const trimmed = value.trim();
+  if (!/^\d+(\.\d{1,9})?$/.test(trimmed)) return null;
+
+  const [whole, fraction = ""] = trimmed.split(".");
+  return BigInt(whole) * LAMPORTS_PER_SOL + BigInt(fraction.padEnd(SOL_DECIMALS, "0"));
+}
+
 /** Middle-truncate a base58 address for display. */
 export function shortenAddress(address: string, lead = 4, tail = 4): string {
   if (address.length <= lead + tail + 1) return address;

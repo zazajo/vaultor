@@ -32,8 +32,15 @@ from apps.presale.models import LAMPORTS_PER_SOL, Contribution, PresaleConfig, T
 #   1e9 lamports / 9,263.75 = 107,947 lamports per token
 # token_price_lamports is the number that decides allocations. The USD figures
 # below are advertising copy and never enter the math.
+#
+# treasury_address is the live collector, shown on site and watched by the
+# indexer — not the final resting place of the funds. The original address
+# (5oQX6kdkKutvUNP7qGvBb8nn89oJMLVMeDWMyov9PXgq) is now the cold destination
+# that this wallet gets swept to at close, via /incubator/sweep. That sweep
+# is manual and typed in by hand each time on purpose, so it is deliberately
+# NOT encoded anywhere in this file — see SweepPanel.tsx for why.
 CONFIG = {
-    'treasury_address': '5oQX6kdkKutvUNP7qGvBb8nn89oJMLVMeDWMyov9PXgq',
+    'treasury_address': '4rduQcuLoZ5bQffYk1Emjanb7iTmtwMPM3B68dbXiSRd',
     'cluster': PresaleConfig.Cluster.MAINNET,
     'soft_cap_lamports': 160 * LAMPORTS_PER_SOL,
     'hard_cap_lamports': 300 * LAMPORTS_PER_SOL,

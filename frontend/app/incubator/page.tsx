@@ -4,6 +4,7 @@ import Countdown from "@/components/Countdown";
 import FadeIn from "@/components/FadeIn";
 import PageHeader from "@/components/PageHeader";
 import AllocationChecker from "@/components/presale/AllocationChecker";
+import ContributeForm from "@/components/presale/ContributeForm";
 import PriceBanner from "@/components/presale/PriceBanner";
 import RaiseProgress from "@/components/presale/RaiseProgress";
 import TierTable from "@/components/presale/TierTable";
@@ -27,6 +28,7 @@ export default async function IncubatorPage() {
 
   const presaleOpen = config?.presale_open ?? false;
   const hasAddress = Boolean(status?.treasury_address);
+  const cluster = status?.cluster === "devnet" ? "devnet" : "mainnet-beta";
 
   return (
     <section className="relative mx-auto max-w-4xl px-4 py-20 sm:px-6 sm:py-24">
@@ -41,65 +43,79 @@ export default async function IncubatorPage() {
           The incubator is warming up. Check back shortly.
         </FadeIn>
       ) : (
-        <div className="mt-14 flex flex-col gap-6 sm:mt-16">
-          {!presaleOpen && config?.presale_start && (
-            <FadeIn>
-              <div className="metal-ring flex flex-col items-center gap-4 rounded-xl border border-transparent bg-surface p-6 text-center sm:p-8">
-                <p className="text-xs font-semibold uppercase tracking-widest text-vault-blue">
-                  Presale Opens In
-                </p>
-                <Countdown />
-              </div>
-            </FadeIn>
-          )}
-
-          <FadeIn delay={0.06}>
-            <PriceBanner
-              presalePrice={status.presale_price_usd}
-              launchPrice={status.launch_price_usd}
-            />
-          </FadeIn>
-
-          <FadeIn delay={0.12}>
-            <RaiseProgress status={status} />
-          </FadeIn>
-
-          {/* The address is withheld by the API while the presale is paused or
-              unopened, so contributors can't send early to an address that
-              isn't being watched yet. */}
-          {hasAddress && presaleOpen ? (
-            <FadeIn delay={0.12}>
-              <TreasuryAddress address={status.treasury_address} cluster={status.cluster} />
-            </FadeIn>
-          ) : (
-            <FadeIn delay={0.12}>
-              <div className="metal-ring flex items-start gap-3 rounded-xl border border-transparent bg-surface p-6 sm:p-8">
-                <Lock size={18} className="mt-0.5 shrink-0 text-text-secondary" />
-                <div className="text-sm text-text-secondary">
-                  <p className="font-semibold text-text-primary">
-                    The contribution address is not live yet.
+        // Wallet context is scoped to this section rather than the root
+        // layout, so the adapter never loads on pages that don't use it. It
+        // wraps the whole body (not just the wallet-aware pieces) so
+        // connecting once carries through to both the contribute form and
+        // the allocation checker below, instead of each holding its own
+        // separate connection.
+        <WalletContext cluster={cluster}>
+          <div className="mt-14 flex flex-col gap-6 sm:mt-16">
+            {!presaleOpen && config?.presale_start && (
+              <FadeIn>
+                <div className="metal-ring flex flex-col items-center gap-4 rounded-xl border border-transparent bg-surface p-6 text-center sm:p-8">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-vault-blue">
+                    Presale Opens In
                   </p>
-                  <p className="mt-1.5 text-xs leading-relaxed">
-                    It will appear here, on this page, the moment the presale opens. Anyone sharing
-                    an address before then — in a DM, a group chat, or a reply — is not us.
-                  </p>
+                  <Countdown />
                 </div>
-              </div>
+              </FadeIn>
+            )}
+
+            <FadeIn delay={0.06}>
+              <PriceBanner
+                presalePrice={status.presale_price_usd}
+                launchPrice={status.launch_price_usd}
+              />
             </FadeIn>
-          )}
 
-          <FadeIn delay={0.18}>
-            <TierTable tiers={status.tiers} />
-          </FadeIn>
+            <FadeIn delay={0.12}>
+              <RaiseProgress status={status} />
+            </FadeIn>
 
-          {/* Wallet context is scoped to this section rather than the root
-              layout, so the adapter never loads on pages that don't use it. */}
-          <FadeIn delay={0.24}>
-            <WalletContext>
+            {/* The address is withheld by the API while the presale is paused or
+                unopened, so contributors can't send early to an address that
+                isn't being watched yet. */}
+            {hasAddress && presaleOpen ? (
+              <>
+                <FadeIn delay={0.12}>
+                  <TreasuryAddress address={status.treasury_address} cluster={status.cluster} />
+                </FadeIn>
+                <FadeIn delay={0.15}>
+                  <ContributeForm
+                    treasuryAddress={status.treasury_address}
+                    cluster={cluster}
+                    minContributionLamports={status.min_contribution_lamports}
+                    maxContributionLamports={status.max_contribution_lamports}
+                  />
+                </FadeIn>
+              </>
+            ) : (
+              <FadeIn delay={0.12}>
+                <div className="metal-ring flex items-start gap-3 rounded-xl border border-transparent bg-surface p-6 sm:p-8">
+                  <Lock size={18} className="mt-0.5 shrink-0 text-text-secondary" />
+                  <div className="text-sm text-text-secondary">
+                    <p className="font-semibold text-text-primary">
+                      The contribution address is not live yet.
+                    </p>
+                    <p className="mt-1.5 text-xs leading-relaxed">
+                      It will appear here, on this page, the moment the presale opens. Anyone sharing
+                      an address before then in a DM, a group chat, or a reply is not us.
+                    </p>
+                  </div>
+                </div>
+              </FadeIn>
+            )}
+
+            <FadeIn delay={0.18}>
+              <TierTable tiers={status.tiers} />
+            </FadeIn>
+
+            <FadeIn delay={0.24}>
               <AllocationChecker />
-            </WalletContext>
-          </FadeIn>
-        </div>
+            </FadeIn>
+          </div>
+        </WalletContext>
       )}
     </section>
   );
