@@ -1,9 +1,16 @@
+from datetime import timedelta
 from decimal import Decimal
+from io import StringIO
 
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone as dj_timezone
 
+from apps.core.models import SiteConfig
 from apps.presale.management.commands.index_contributions import extract_deposit
+from apps.presale.management.commands.seed_presale import CONFIG, TIERS
 from apps.presale.models import LAMPORTS_PER_SOL, Contribution, PresaleConfig, Tier
 from apps.presale import services
 
@@ -212,3 +219,137 @@ class PresaleApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['contributed_lamports'], str(7 * LAMPORTS_PER_SOL))
         self.assertEqual(response.data['contribution_count'], 1)
+
+
+class SeedPresaleTests(TestCase):
+    """This command writes the numbers that decide allocations, into production."""
+
+    def seed(self, **kwargs):
+        out, err = StringIO(), StringIO()
+        call_command('seed_presale', stdout=out, stderr=err, **kwargs)
+        return out.getvalue(), err.getvalue()
+
+    def test_advertised_price_agrees_with_allocation_price(self):
+        """Guards the constants themselves, not the code that applies them.
+
+        token_price_lamports is derived from the USD price and the SOL rate; if
+        one of the three is mistyped the site advertises a price it does not
+        honour. Allow a lamport of rounding, no more.
+        """
+        derived = (Decimal(LAMPORTS_PER_SOL) * CONFIG['presale_price_usd']
+                   / CONFIG['sol_usd_rate_at_pricing'])
+        self.assertLess(abs(derived - CONFIG['token_price_lamports']), 1)
+
+    def test_launch_price_is_above_presale_price(self):
+        self.assertGreater(CONFIG['launch_price_usd'], CONFIG['presale_price_usd'])
+
+    def test_caps_and_limits_are_ordered(self):
+        self.assertLess(CONFIG['soft_cap_lamports'], CONFIG['hard_cap_lamports'])
+        self.assertLess(CONFIG['min_contribution_lamports'], CONFIG['max_contribution_lamports'])
+
+    def test_applies_config_and_tiers_to_empty_database(self):
+        self.seed()
+        config = PresaleConfig.load()
+        self.assertEqual(config.treasury_address, CONFIG['treasury_address'])
+        self.assertEqual(config.token_price_lamports, CONFIG['token_price_lamports'])
+        self.assertEqual(config.hard_cap_lamports, CONFIG['hard_cap_lamports'])
+        self.assertEqual(Tier.objects.count(), len(TIERS))
+
+    def test_rerun_is_idempotent(self):
+        self.seed()
+        out, _ = self.seed()
+        self.assertEqual(Tier.objects.count(), len(TIERS))
+        self.assertIn('already matches', out)
+        self.assertIn('Tiers already match', out)
+
+    def test_dry_run_writes_nothing(self):
+        self.seed(dry_run=True)
+        self.assertEqual(Tier.objects.count(), 0)
+        self.assertEqual(PresaleConfig.load().treasury_address, '')
+
+    def test_never_opens_the_presale(self):
+        """Opening the raise must stay a deliberate act."""
+        self.seed()
+        self.assertFalse(SiteConfig.load().presale_open)
+
+    def test_leaves_indexer_cursor_and_contributions_alone(self):
+        config = PresaleConfig.load()
+        config.last_indexed_signature = 'cursor-sig'
+        config.save()
+        Contribution.objects.create(
+            signature='sig-existing', sender_address=CONTRIBUTOR,
+            lamports=LAMPORTS_PER_SOL, slot=1,
+        )
+
+        self.seed()
+
+        self.assertEqual(PresaleConfig.load().last_indexed_signature, 'cursor-sig')
+        self.assertEqual(Contribution.objects.count(), 1)
+
+    def test_does_not_unpause_a_paused_presale(self):
+        config = PresaleConfig.load()
+        config.is_paused = True
+        config.save()
+        self.seed()
+        self.assertTrue(PresaleConfig.load().is_paused)
+
+    def test_corrects_a_tier_edited_to_the_wrong_band(self):
+        self.seed()
+        oracle = Tier.objects.get(name='Oracle')
+        oracle.bonus_bps = 9999
+        oracle.save()
+
+        self.seed()
+
+        self.assertEqual(Tier.objects.get(name='Oracle').bonus_bps, 1500)
+
+    def test_unknown_tier_is_reported_but_kept(self):
+        Tier.objects.create(name='Legacy', min_lamports=LAMPORTS_PER_SOL, bonus_bps=2500, order=9)
+        _, err = self.seed()
+        self.assertIn('Legacy', err)
+        self.assertTrue(Tier.objects.filter(name='Legacy').exists())
+
+    def test_unknown_tier_removed_only_when_asked(self):
+        Tier.objects.create(name='Legacy', min_lamports=LAMPORTS_PER_SOL, bonus_bps=2500, order=9)
+        self.seed(prune_tiers=True)
+        self.assertFalse(Tier.objects.filter(name='Legacy').exists())
+
+    def test_sets_presale_start_when_given(self):
+        self.seed(presale_start='2026-08-09T16:00:00Z')
+        self.assertEqual(
+            SiteConfig.load().presale_start.isoformat(),
+            '2026-08-09T16:00:00+00:00',
+        )
+
+    def test_rejects_presale_start_without_timezone(self):
+        """A naive datetime would let the server's timezone decide the open."""
+        with self.assertRaises(CommandError):
+            self.seed(presale_start='2026-08-09T16:00:00')
+        self.assertIsNone(SiteConfig.load().presale_start)
+
+    def test_rejects_unparseable_presale_start(self):
+        with self.assertRaises(CommandError):
+            self.seed(presale_start='next tuesday')
+
+    def test_warns_when_stored_start_is_in_the_past(self):
+        site = SiteConfig.load()
+        site.presale_start = dj_timezone.now() - timedelta(days=1)
+        site.save()
+        _, err = self.seed()
+        self.assertIn('in the past', err)
+
+    def test_reports_reprice_against_already_credited_contributions(self):
+        config = PresaleConfig.load()
+        config.token_price_lamports = 1_000_000
+        config.save()
+        Contribution.objects.create(
+            signature='sig-priced', sender_address=CONTRIBUTOR,
+            lamports=LAMPORTS_PER_SOL, slot=1,
+            base_tokens=Decimal(1000), token_price_lamports_at_credit=1_000_000,
+        )
+
+        _, err = self.seed()
+
+        self.assertIn('frozen', err)
+        # The frozen allocation is untouched by the re-price.
+        self.assertEqual(services.base_tokens_for(CONTRIBUTOR), Decimal(1000))
