@@ -166,3 +166,54 @@ export function getAllocation(address: string): Promise<Allocation> {
     cache: "no-store",
   });
 }
+
+export interface Challenge {
+  nonce: string;
+  message: string;
+  expires_at: string;
+}
+
+export interface VerifyResult {
+  token: string;
+  wallet_address: string;
+  referral_code: string;
+  created: boolean;
+}
+
+export interface Me {
+  wallet_address: string;
+  referral_code: string;
+  joined_phase: string;
+  referred_count: number;
+  earned_vot: string;
+  milestone_100_reached_at: string | null;
+  milestone_500_reached_at: string | null;
+}
+
+export function getChallenge(walletAddress: string): Promise<Challenge> {
+  return apiFetch<Challenge>("/accounts/challenge/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ wallet_address: walletAddress }),
+  });
+}
+
+export function verifyChallenge(
+  walletAddress: string,
+  nonce: string,
+  signature: string,
+  ref?: string,
+): Promise<VerifyResult> {
+  return apiFetch<VerifyResult>("/accounts/verify/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ wallet_address: walletAddress, nonce, signature, ref }),
+  });
+}
+
+export function getMe(token: string): Promise<Me> {
+  return apiFetch<Me>("/accounts/me/", {
+    cache: "no-store",
+    headers: { Authorization: `Token ${token}` },
+  });
+}

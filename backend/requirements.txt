@@ -9,3 +9,5 @@ whitenoise>=6.7
 dj-database-url>=2.3
 psycopg2-binary>=2.9
 requests>=2.32
+PyNaCl>=1.5
+base58>=2.1

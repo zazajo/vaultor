@@ -44,7 +44,7 @@ CONFIG = {
     'cluster': PresaleConfig.Cluster.MAINNET,
     'soft_cap_lamports': 160 * LAMPORTS_PER_SOL,
     'hard_cap_lamports': 300 * LAMPORTS_PER_SOL,
-    'min_contribution_lamports': LAMPORTS_PER_SOL // 4,
+    'min_contribution_lamports': 70_000_000,  # 0.07 SOL, ~$5.19 at the $74.11 rate above
     'max_contribution_lamports': 10 * LAMPORTS_PER_SOL,
     'token_price_lamports': 107_947,
     'presale_price_usd': Decimal('0.008'),
@@ -226,7 +226,7 @@ class Command(BaseCommand):
                 f'+{spec["bonus_bps"] / 100:g}%'
             )
         for current, _, diff in plan['update']:
-            fields = ', '.join(f'{f} {getattr(current, f)} → {v}' for f, v in diff.items())
+            fields = ', '.join(f'{f} {getattr(current, f)} -> {v}' for f, v in diff.items())
             self.stdout.write(f'  update {current.name} — {fields}')
         for tier in plan['unknown']:
             self.stderr.write(self.style.WARNING(
@@ -255,7 +255,7 @@ class Command(BaseCommand):
         previous = site.presale_start
         site.presale_start = start
         site.save()
-        self.stdout.write(f'\npresale_start: {previous} → {start}')
+        self.stdout.write(f'\npresale_start: {previous} -> {start}')
 
     def _report_remaining_steps(self):
         """State what this command deliberately did not do."""

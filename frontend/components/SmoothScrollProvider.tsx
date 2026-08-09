@@ -18,7 +18,15 @@ export default function SmoothScrollProvider({ children }: { children: ReactNode
     }
     frameId = requestAnimationFrame(raf);
 
+    // Lenis caches the scrollable height at init. Content that appears later
+    // without a window resize - e.g. the wallet-connected sections on the
+    // sweep page - grows the page without Lenis knowing, so it stops short
+    // of the real bottom until told to recompute.
+    const resizeObserver = new ResizeObserver(() => lenis.resize());
+    resizeObserver.observe(document.body);
+
     return () => {
+      resizeObserver.disconnect();
       cancelAnimationFrame(frameId);
       lenis.destroy();
     };

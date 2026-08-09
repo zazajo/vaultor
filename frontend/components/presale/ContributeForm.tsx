@@ -68,7 +68,16 @@ export default function ContributeForm({
       tx.add(SystemProgram.transfer({ fromPubkey: publicKey, toPubkey: treasury, lamports: parsed }));
 
       const signature = await sendTransaction(tx, connection);
-      await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
+      const confirmation = await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
+
+      // confirmTransaction resolves (doesn't throw) for a transaction that
+      // landed on-chain but whose instruction failed to execute. Without
+      // this check that failure reads as a successful contribution.
+      if (confirmation.value.err) {
+        throw new Error(
+          `Transaction landed but failed on-chain: ${JSON.stringify(confirmation.value.err)}. No funds moved.`,
+        );
+      }
 
       setStatus({ kind: "sent", signature });
       setAmount("");

@@ -14,11 +14,13 @@ export type SolanaCluster = "mainnet-beta" | "devnet";
 // explicitly would pull in a large bundle to detect wallets that announce
 // themselves anyway.
 //
-// The connection uses Solana's public cluster endpoint, not the paid RPC the
-// backend indexer uses — signing and broadcasting a transaction needs *some*
-// endpoint, but not our metered one, so that key still never reaches the
-// browser. Rate limits on the public endpoint are a non-issue here: this is a
-// handful of user-initiated calls per session, not continuous polling.
+// Mainnet uses a dedicated RPC (NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL) rather
+// than Solana's public cluster endpoint: the public one is shared across
+// everyone hitting it from the same network and can already be over its free
+// quota before this page makes a single call, which is not acceptable for
+// the tool that sweeps the presale treasury. This key is a client-exposed
+// free-tier key, not the paid one the backend indexer uses, and is meant to
+// be public. Devnet has no such contention, so it keeps the public endpoint.
 export default function WalletContext({
   children,
   cluster,
@@ -27,7 +29,12 @@ export default function WalletContext({
   cluster: SolanaCluster;
 }) {
   const wallets = useMemo(() => [], []);
-  const endpoint = useMemo(() => clusterApiUrl(cluster), [cluster]);
+  const endpoint = useMemo(() => {
+    if (cluster === "mainnet-beta" && process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL) {
+      return process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL;
+    }
+    return clusterApiUrl(cluster);
+  }, [cluster]);
 
   return (
     <ConnectionProvider endpoint={endpoint}>

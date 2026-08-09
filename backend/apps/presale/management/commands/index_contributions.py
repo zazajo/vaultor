@@ -238,7 +238,7 @@ class Command(BaseCommand):
 
             if dry_run:
                 earned = f'{base_tokens:,.2f} tokens' if base_tokens is not None else 'no price set'
-                self.stdout.write(f'  would credit {sender[:8]}… {lamports / 1e9:g} SOL → {earned}')
+                self.stdout.write(f'  would credit {sender[:8]}... {lamports / 1e9:g} SOL -> {earned}')
             else:
                 try:
                     Contribution.objects.create(

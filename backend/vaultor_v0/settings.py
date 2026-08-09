@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'drf_spectacular',
     'apps.accounts',
@@ -97,6 +98,14 @@ if RAILWAY_PUBLIC_DOMAIN:
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
+    ],
+    # Token, not session cookies: CORS_ALLOW_ALL_ORIGINS below can't legally
+    # be combined with credentialed (cookie) requests, and a bearer token
+    # sidesteps CSRF entirely. See apps/accounts/services.py for the auth
+    # flow this protects - it never gates fund movement, only the referral
+    # dashboard, so the lower-friction choice is the right one here.
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,

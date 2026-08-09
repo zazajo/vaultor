@@ -148,16 +148,26 @@ function SweepForm({ cluster }: { cluster: SolanaCluster }) {
       const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
       // Fee depends on the transaction's signatures, not the transfer amount,
-      // so price it with a throwaway amount first, then send exactly
-      // (balance - fee) — draining the wallet to zero rather than leaving
-      // unswept dust or failing outright for lacking fee money.
+      // so price it with a throwaway amount first, then send (balance - fee)
+      // - draining the wallet to (near) zero rather than leaving unswept
+      // dust or failing outright for lacking fee money.
+      //
+      // FEE_BUFFER_LAMPORTS pads that estimate: some wallets (Phantom
+      // included) silently attach their own priority-fee instruction to
+      // transactions they broadcast, which this dApp has no way to see in
+      // advance. Without headroom, a drain-to-exact-balance transfer leaves
+      // nothing for that extra cost and the instruction fails on-chain after
+      // already being confirmed - see the err check below for why that
+      // matters.
+      const FEE_BUFFER_LAMPORTS = 200_000n;
+
       const probe = new Transaction();
       probe.recentBlockhash = blockhash;
       probe.feePayer = publicKey;
       probe.add(SystemProgram.transfer({ fromPubkey: publicKey, toPubkey: destinationKey, lamports: 0 }));
 
       const feeResult = await connection.getFeeForMessage(probe.compileMessage(), "confirmed");
-      const fee = BigInt(feeResult.value ?? 5000);
+      const fee = BigInt(feeResult.value ?? 5000) + FEE_BUFFER_LAMPORTS;
 
       if (balance <= fee) {
         throw new Error(`Balance (${formatSol(balance, 9)} SOL) isn't enough to cover the network fee.`);
@@ -170,7 +180,17 @@ function SweepForm({ cluster }: { cluster: SolanaCluster }) {
       tx.add(SystemProgram.transfer({ fromPubkey: publicKey, toPubkey: destinationKey, lamports: lamportsToSend }));
 
       const signature = await sendTransaction(tx, connection);
-      await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
+      const confirmation = await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
+
+      // confirmTransaction resolves (doesn't throw) for a transaction that
+      // landed on-chain but whose instruction failed to execute - e.g. it
+      // was included in a block but couldn't cover its own cost. Without
+      // this check that failure reads as success.
+      if (confirmation.value.err) {
+        throw new Error(
+          `Transaction landed but failed on-chain: ${JSON.stringify(confirmation.value.err)}. No funds moved.`,
+        );
+      }
 
       setStatus({ kind: "sent", signature });
       await refreshBalance();
